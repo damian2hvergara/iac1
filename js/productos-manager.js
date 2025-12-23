@@ -1,5 +1,3 @@
-[file name]: productos-manager.js
-[file content begin]
 // ===================== PRODUCTOS MANAGER MEJORADO =====================
 class ProductosManager {
   constructor(config) {
@@ -30,25 +28,18 @@ class ProductosManager {
   async init() {
     console.log('🚗 Inicializando ProductosManager...');
     
-    // Cargar configuración de usuario
     this.loadUserPreferences();
     
-    // Testear conexión a Supabase
     const isConnected = await this.supabaseService.testConnection();
     if (!isConnected) {
       console.warn('⚠️ Sin conexión a Supabase. Usando datos locales.');
       if (window.UINotifications) {
-        UINotifications.warning('Modo offline activado. Mostrando datos almacenados.', 5000);
+        window.UINotifications.warning('Modo offline activado. Mostrando datos almacenados.', 5000);
       }
     }
     
-    // Cargar kits primero
     await this.cargarKits();
-    
-    // Cargar vehículos
     await this.cargarVehiculos();
-    
-    // Actualizar estadísticas
     this.actualizarEstadisticas();
     
     console.log('✅ ProductosManager listo');
@@ -64,12 +55,10 @@ class ProductosManager {
     this.isLoading = true;
     
     try {
-      // Mostrar loading en UI
       if (window.UIManager) {
         window.UIManager.showLoading('vehiclesContainer', 'Cargando vehículos...');
       }
       
-      // Obtener vehículos del servicio
       this.vehiculos = await this.supabaseService.getVehiculos(forceRefresh);
       
       if (this.vehiculos.length === 0) {
@@ -77,22 +66,12 @@ class ProductosManager {
         return;
       }
       
-      // Actualizar kits con precios específicos de los vehículos
       await this.actualizarKitsConPreciosReales();
-      
-      // Aplicar filtros guardados
       this.aplicarFiltrosGuardados();
-      
-      // Renderizar vehículos
       this.renderVehiculos();
-      
-      // Actualizar contadores en UI
       this.actualizarContadoresUI();
-      
-      // Guardar timestamp de última actualización
       this.guardarUltimaActualizacion();
       
-      // Evento para notificar que los vehículos se cargaron
       this.emitirEvento('vehiculos:cargados', {
         count: this.vehiculos.length,
         forceRefresh
@@ -101,9 +80,8 @@ class ProductosManager {
     } catch (error) {
       console.error('❌ Error cargando vehículos:', error);
       
-      // Mostrar error en UI
       if (window.UINotifications) {
-        UINotifications.error('Error al cargar los vehículos. Intenta nuevamente.');
+        window.UINotifications.error('Error al cargar los vehículos. Intenta nuevamente.');
       }
       
       this.mostrarErrorCarga();
@@ -111,7 +89,6 @@ class ProductosManager {
     } finally {
       this.isLoading = false;
       
-      // Ocultar loading
       if (window.UIManager) {
         window.UIManager.hideLoading('vehiclesContainer');
       }
@@ -120,10 +97,8 @@ class ProductosManager {
   
   async actualizarKitsConPreciosReales() {
     try {
-      // Obtener kits actualizados con precios de la BD
       this.kits = await this.supabaseService.getKits();
       
-      // Actualizar kits en UIKits si está disponible
       if (window.UIKits) {
         window.UIKits.updateKits(this.kits);
       }
@@ -150,21 +125,16 @@ class ProductosManager {
   
   async buscarVehiculos(query, filters = {}) {
     try {
-      // Mostrar loading
       if (window.UIManager) {
         window.UIManager.showLoading('vehiclesContainer', 'Buscando vehículos...');
       }
       
-      // Combinar filtros
       const filtrosCombinados = { ...this.filters, ...filters };
       
-      // Buscar en Supabase
       const resultados = await this.supabaseService.searchVehiculos(query, filtrosCombinados);
       
-      // Renderizar resultados
       this.renderVehiculos(resultados);
       
-      // Mostrar mensaje si no hay resultados
       if (resultados.length === 0) {
         this.mostrarMensajeSinResultados(query);
       }
@@ -174,7 +144,6 @@ class ProductosManager {
     } catch (error) {
       console.error('❌ Error buscando vehículos:', error);
       
-      // Buscar localmente como fallback
       const resultadosLocales = this.buscarLocalmente(query, filters);
       this.renderVehiculos(resultadosLocales);
       
@@ -185,7 +154,6 @@ class ProductosManager {
       return resultadosLocales;
       
     } finally {
-      // Ocultar loading
       if (window.UIManager) {
         window.UIManager.hideLoading('vehiclesContainer');
       }
@@ -198,7 +166,6 @@ class ProductosManager {
     }
     
     return this.vehiculos.filter(vehiculo => {
-      // Búsqueda por texto
       if (query) {
         const searchable = [
           vehiculo.nombre,
@@ -214,7 +181,6 @@ class ProductosManager {
         }
       }
       
-      // Filtros
       if (filters.estado_inventario && vehiculo.estado_inventario !== filters.estado_inventario) {
         return false;
       }
@@ -245,7 +211,6 @@ class ProductosManager {
     let vehiculosFiltrados = this.vehiculos;
     
     if (filter !== 'all') {
-      // Mapear filtros UI a estados_inventario de BD
       let estadoInventario;
       switch(filter) {
         case 'stock': estadoInventario = 'disponible'; break;
@@ -257,20 +222,15 @@ class ProductosManager {
       vehiculosFiltrados = this.vehiculos.filter(v => v.estado_inventario === estadoInventario);
     }
     
-    // Actualizar filtro en estado
     this.filters.estado_inventario = filter === 'all' ? null : filter;
     
-    // Guardar preferencia de usuario
     this.guardarPreferenciaUsuario('filtroActivo', filter);
     
-    // Actualizar UI
     this.actualizarBotonesFiltro(filter);
     this.renderVehiculos(vehiculosFiltrados);
     
-    // Actualizar contador
     this.actualizarContadorFiltro(vehiculosFiltrados.length);
     
-    // Evento
     this.emitirEvento('vehiculos:filtrados', {
       filter,
       count: vehiculosFiltrados.length
@@ -280,7 +240,6 @@ class ProductosManager {
   aplicarFiltros(filters) {
     this.filters = { ...this.filters, ...filters };
     
-    // Aplicar filtros
     const vehiculosFiltrados = this.vehiculos.filter(vehiculo => {
       if (this.filters.estado_inventario && vehiculo.estado_inventario !== this.filters.estado_inventario) {
         return false;
@@ -305,18 +264,15 @@ class ProductosManager {
       return true;
     });
     
-    // Ordenar
     vehiculosFiltrados.sort((a, b) => {
       let valueA = a[this.filters.sortBy];
       let valueB = b[this.filters.sortBy];
       
-      // Convertir a números si es precio
       if (this.filters.sortBy === 'precio') {
         valueA = Number(valueA) || 0;
         valueB = Number(valueB) || 0;
       }
       
-      // Convertir fechas
       if (this.filters.sortBy === 'created_at') {
         valueA = new Date(valueA);
         valueB = new Date(valueB);
@@ -422,7 +378,6 @@ class ProductosManager {
     };
   }
   
-  // UI Methods
   renderVehiculos(vehiculos = this.getVehiculosFiltrados()) {
     const container = document.getElementById('vehiclesContainer');
     if (!container) return;
@@ -434,7 +389,6 @@ class ProductosManager {
     
     container.innerHTML = vehiculos.map(vehiculo => this.getVehicleCardHTML(vehiculo)).join('');
     
-    // Agregar event listeners a las cards
     this.setupVehicleCardsEvents();
   }
   
@@ -508,7 +462,7 @@ class ProductosManager {
           Pronto agregaremos nuevos modelos.
         </p>
         <div class="empty-state-actions">
-          <button class="button" onclick="productosManager.cargarVehiculos(true)">
+          <button class="button" onclick="window.productosManager.cargarVehiculos(true)">
             <i class="fas fa-sync"></i> Recargar
           </button>
           <a href="${this.config.urls.social.whatsapp}" target="_blank" class="button button-whatsapp">
@@ -522,7 +476,6 @@ class ProductosManager {
   setupVehicleCardsEvents() {
     document.querySelectorAll('.vehicle-card').forEach(card => {
       card.addEventListener('click', (e) => {
-        // No activar si se hizo clic en un botón
         if (e.target.closest('button')) {
           return;
         }
@@ -533,7 +486,6 @@ class ProductosManager {
         }
       });
       
-      // Soporte para teclado
       card.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
@@ -544,7 +496,6 @@ class ProductosManager {
         }
       });
       
-      // Mejorar accesibilidad
       card.setAttribute('tabindex', '0');
       card.setAttribute('role', 'button');
     });
@@ -587,7 +538,7 @@ class ProductosManager {
             Por favor, intenta nuevamente más tarde.
           </p>
           <div class="empty-state-actions">
-            <button class="button" onclick="productosManager.cargarVehiculos(true)">
+            <button class="button" onclick="window.productosManager.cargarVehiculos(true)">
               <i class="fas fa-redo"></i> Reintentar
             </button>
             <a href="${this.config.urls.social.whatsapp}" target="_blank" class="button button-outline">
@@ -613,10 +564,10 @@ class ProductosManager {
             Intenta con otros términos o filtros.
           </p>
           <div class="empty-state-actions">
-            <button class="button" onclick="productosManager.filtrarVehiculos('all')">
+            <button class="button" onclick="window.productosManager.filtrarVehiculos('all')">
               <i class="fas fa-times"></i> Limpiar filtros
             </button>
-            <button class="button button-outline" onclick="productosManager.cargarVehiculos()">
+            <button class="button button-outline" onclick="window.productosManager.cargarVehiculos()">
               <i class="fas fa-sync"></i> Ver todos
             </button>
           </div>
@@ -629,7 +580,6 @@ class ProductosManager {
     if (window.UIManager) {
       window.UIManager.updateFilterButtons(activeFilter);
     } else {
-      // Fallback manual
       document.querySelectorAll('.filter-button').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.filter === activeFilter);
         btn.setAttribute('aria-pressed', btn.dataset.filter === activeFilter);
@@ -647,10 +597,7 @@ class ProductosManager {
   }
   
   actualizarContadoresUI() {
-    // Actualizar contadores en el hero
     this.actualizarContadorHero();
-    
-    // Actualizar estadísticas
     this.actualizarEstadisticasUI();
   }
   
@@ -680,7 +627,6 @@ class ProductosManager {
   }
   
   actualizarEstadisticasUI() {
-    // Actualizar badges o indicadores
     const statsContainer = document.getElementById('statsContainer');
     if (statsContainer) {
       statsContainer.innerHTML = `
@@ -706,7 +652,6 @@ class ProductosManager {
     }
   }
   
-  // WhatsApp Integration
   getWhatsAppUrl(vehiculo, kit = null) {
     let mensaje = `Hola, estoy interesado en el vehículo:\n\n`;
     mensaje += `*${vehiculo.nombre || 'Vehículo'}*\n`;
@@ -752,7 +697,6 @@ class ProductosManager {
     return `${this.config.urls.social.whatsapp}?text=${encodeURIComponent(mensaje)}`;
   }
   
-  // Formatting methods
   formatPrice(price) {
     if (!this.config.app.mostrarPrecios) return 'Consultar';
     if (!price && price !== 0) return 'Consultar';
@@ -779,7 +723,6 @@ class ProductosManager {
     return this.config.app.estados[estado]?.icono || 'fa-car';
   }
   
-  // User preferences
   loadUserPreferences() {
     try {
       const prefs = JSON.parse(localStorage.getItem(this.config.storageKeys.userPreferences)) || {};
@@ -840,23 +783,20 @@ class ProductosManager {
     }
   }
   
-  // Event system
   emitirEvento(nombre, datos = {}) {
     const evento = new CustomEvent(`productos:${nombre}`, { detail: datos });
     document.dispatchEvent(evento);
   }
   
-  // Refresh data
   async refreshData() {
     await this.cargarKits(true);
     await this.cargarVehiculos(true);
     
     if (window.UINotifications) {
-      UINotifications.success('Datos actualizados correctamente', 3000);
+      window.UINotifications.success('Datos actualizados correctamente', 3000);
     }
   }
   
-  // Get summary for analytics
   getSummary() {
     return {
       totalVehicles: this.vehiculos.length,
@@ -868,11 +808,8 @@ class ProductosManager {
   }
 }
 
-// Exportar para módulos ES6
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = ProductosManager;
 } else {
-  // Hacer disponible globalmente
   window.ProductosManager = ProductosManager;
 }
-[file content end]
