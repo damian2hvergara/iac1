@@ -1,3 +1,5 @@
+[file name]: productos-manager.js
+[file content begin]
 // ===================== PRODUCTOS MANAGER MEJORADO =====================
 class ProductosManager {
   constructor(config) {
@@ -7,12 +9,13 @@ class ProductosManager {
     this.kits = [];
     this.currentFilter = "all";
     this.filters = {
-      estado: null,
+      estado_inventario: null,
       marca: null,
+      tipo_vehiculo: null,
       minPrecio: null,
       maxPrecio: null,
-      sortBy: 'orden',
-      sortOrder: 'asc'
+      sortBy: 'created_at',
+      sortOrder: 'desc'
     };
     this.stats = {
       total: 0,
@@ -34,10 +37,12 @@ class ProductosManager {
     const isConnected = await this.supabaseService.testConnection();
     if (!isConnected) {
       console.warn('⚠️ Sin conexión a Supabase. Usando datos locales.');
-      UINotifications.warning('Modo offline activado. Mostrando datos almacenados.', 5000);
+      if (window.UINotifications) {
+        UINotifications.warning('Modo offline activado. Mostrando datos almacenados.', 5000);
+      }
     }
     
-    // Cargar kits primero (son más pequeños)
+    // Cargar kits primero
     await this.cargarKits();
     
     // Cargar vehículos
@@ -72,6 +77,9 @@ class ProductosManager {
         return;
       }
       
+      // Actualizar kits con precios específicos de los vehículos
+      await this.actualizarKitsConPreciosReales();
+      
       // Aplicar filtros guardados
       this.aplicarFiltrosGuardados();
       
@@ -95,7 +103,7 @@ class ProductosManager {
       
       // Mostrar error en UI
       if (window.UINotifications) {
-        window.UINotifications.error('Error al cargar los vehículos. Intenta nuevamente.');
+        UINotifications.error('Error al cargar los vehículos. Intenta nuevamente.');
       }
       
       this.mostrarErrorCarga();
@@ -110,14 +118,27 @@ class ProductosManager {
     }
   }
   
-  async cargarKits(forceRefresh = false) {
+  async actualizarKitsConPreciosReales() {
     try {
-      this.kits = await this.supabaseService.getKits(forceRefresh);
+      // Obtener kits actualizados con precios de la BD
+      this.kits = await this.supabaseService.getKits();
       
       // Actualizar kits en UIKits si está disponible
       if (window.UIKits) {
         window.UIKits.updateKits(this.kits);
       }
+      
+      console.log(`✅ Kits actualizados con precios reales`);
+      
+    } catch (error) {
+      console.error('❌ Error actualizando kits:', error);
+      this.kits = this.config.app.kitsDefault;
+    }
+  }
+  
+  async cargarKits(forceRefresh = false) {
+    try {
+      this.kits = await this.supabaseService.getKits(forceRefresh);
       
       console.log(`✅ ${this.kits.length} kits cargados`);
       
@@ -184,7 +205,8 @@ class ProductosManager {
           vehiculo.descripcion,
           vehiculo.marca,
           vehiculo.modelo,
-          vehiculo.motor
+          vehiculo.motor,
+          vehiculo.codigo_interno
         ].join(' ').toLowerCase();
         
         if (!searchable.includes(query.toLowerCase())) {
@@ -193,11 +215,15 @@ class ProductosManager {
       }
       
       // Filtros
-      if (filters.estado && vehiculo.estado !== filters.estado) {
+      if (filters.estado_inventario && vehiculo.estado_inventario !== filters.estado_inventario) {
         return false;
       }
       
       if (filters.marca && vehiculo.marca !== filters.marca) {
+        return false;
+      }
+      
+      if (filters.tipo_vehiculo && vehiculo.tipo_vehiculo !== filters.tipo_vehiculo) {
         return false;
       }
       
@@ -219,11 +245,20 @@ class ProductosManager {
     let vehiculosFiltrados = this.vehiculos;
     
     if (filter !== 'all') {
-      vehiculosFiltrados = this.vehiculos.filter(v => v.estado === filter);
+      // Mapear filtros UI a estados_inventario de BD
+      let estadoInventario;
+      switch(filter) {
+        case 'stock': estadoInventario = 'disponible'; break;
+        case 'transit': estadoInventario = 'transito'; break;
+        case 'reserved': estadoInventario = 'reservado'; break;
+        default: estadoInventario = filter;
+      }
+      
+      vehiculosFiltrados = this.vehiculos.filter(v => v.estado_inventario === estadoInventario);
     }
     
     // Actualizar filtro en estado
-    this.filters.estado = filter === 'all' ? null : filter;
+    this.filters.estado_inventario = filter === 'all' ? null : filter;
     
     // Guardar preferencia de usuario
     this.guardarPreferenciaUsuario('filtroActivo', filter);
@@ -247,11 +282,15 @@ class ProductosManager {
     
     // Aplicar filtros
     const vehiculosFiltrados = this.vehiculos.filter(vehiculo => {
-      if (this.filters.estado && vehiculo.estado !== this.filters.estado) {
+      if (this.filters.estado_inventario && vehiculo.estado_inventario !== this.filters.estado_inventario) {
         return false;
       }
       
       if (this.filters.marca && vehiculo.marca !== this.filters.marca) {
+        return false;
+      }
+      
+      if (this.filters.tipo_vehiculo && vehiculo.tipo_vehiculo !== this.filters.tipo_vehiculo) {
         return false;
       }
       
@@ -277,6 +316,12 @@ class ProductosManager {
         valueB = Number(valueB) || 0;
       }
       
+      // Convertir fechas
+      if (this.filters.sortBy === 'created_at') {
+        valueA = new Date(valueA);
+        valueB = new Date(valueB);
+      }
+      
       if (this.filters.sortOrder === 'asc') {
         return valueA > valueB ? 1 : -1;
       } else {
@@ -290,11 +335,25 @@ class ProductosManager {
   
   getVehiculosFiltrados() {
     return this.vehiculos.filter(v => {
-      if (this.currentFilter !== 'all' && v.estado !== this.currentFilter) {
-        return false;
+      if (this.currentFilter !== 'all') {
+        let estadoInventario;
+        switch(this.currentFilter) {
+          case 'stock': estadoInventario = 'disponible'; break;
+          case 'transit': estadoInventario = 'transito'; break;
+          case 'reserved': estadoInventario = 'reservado'; break;
+          default: estadoInventario = this.currentFilter;
+        }
+        
+        if (v.estado_inventario !== estadoInventario) {
+          return false;
+        }
       }
       
       if (this.filters.marca && v.marca !== this.filters.marca) {
+        return false;
+      }
+      
+      if (this.filters.tipo_vehiculo && v.tipo_vehiculo !== this.filters.tipo_vehiculo) {
         return false;
       }
       
@@ -334,6 +393,16 @@ class ProductosManager {
       }
     });
     return Array.from(marcas).sort();
+  }
+  
+  getTiposVehiculoDisponibles() {
+    const tipos = new Set();
+    this.vehiculos.forEach(v => {
+      if (v.tipo_vehiculo) {
+        tipos.add(v.tipo_vehiculo);
+      }
+    });
+    return Array.from(tipos).sort();
   }
   
   getRangoPrecios() {
@@ -390,18 +459,18 @@ class ProductosManager {
         <div class="vehicle-info">
           <h3 class="vehicle-name">${vehiculo.nombre}</h3>
           
-          ${vehiculo.marca || vehiculo.modelo ? `
-            <p class="vehicle-subtitle">
-              ${vehiculo.marca ? `<span>${vehiculo.marca}</span>` : ''}
-              ${vehiculo.modelo ? `<span>• ${vehiculo.modelo}</span>` : ''}
-            </p>
-          ` : ''}
+          <p class="vehicle-subtitle">
+            ${vehiculo.marca ? `<span>${vehiculo.marca}</span>` : ''}
+            ${vehiculo.modelo ? `<span>• ${vehiculo.modelo}</span>` : ''}
+            ${vehiculo.codigo_interno ? `<span>• ${vehiculo.codigo_interno}</span>` : ''}
+          </p>
           
           <div class="vehicle-price">${precioFormateado}</div>
           
           <div class="vehicle-specs">
             ${vehiculo.ano ? `<div class="vehicle-spec"><i class="fas fa-calendar"></i> ${vehiculo.ano}</div>` : ''}
             ${vehiculo.kilometraje ? `<div class="vehicle-spec"><i class="fas fa-road"></i> ${this.formatNumber(vehiculo.kilometraje)} km</div>` : ''}
+            ${vehiculo.kilometraje_millas ? `<div class="vehicle-spec"><i class="fas fa-map-marker-alt"></i> ${this.formatNumber(vehiculo.kilometraje_millas)} mi</div>` : ''}
             ${vehiculo.motor ? `<div class="vehicle-spec"><i class="fas fa-cogs"></i> ${vehiculo.motor}</div>` : ''}
           </div>
           
@@ -604,9 +673,9 @@ class ProductosManager {
   actualizarEstadisticas() {
     this.stats = {
       total: this.vehiculos.length,
-      stock: this.vehiculos.filter(v => v.estado === 'stock').length,
-      transit: this.vehiculos.filter(v => v.estado === 'transit').length,
-      reserved: this.vehiculos.filter(v => v.estado === 'reserved').length
+      stock: this.vehiculos.filter(v => v.estado_inventario === 'disponible').length,
+      transit: this.vehiculos.filter(v => v.estado_inventario === 'transito').length,
+      reserved: this.vehiculos.filter(v => v.estado_inventario === 'reservado').length
     };
   }
   
@@ -646,14 +715,18 @@ class ProductosManager {
       mensaje += `💰 *Precio:* ${this.formatPrice(vehiculo.precio)}\n`;
     }
     
-    mensaje += `📋 *Disponibilidad:* ${vehiculo.estadoTexto || vehiculo.estado}\n`;
+    mensaje += `📋 *Disponibilidad:* ${vehiculo.estadoTexto || vehiculo.estado_inventario}\n`;
+    
+    if (vehiculo.codigo_interno) {
+      mensaje += `🔢 *Código:* ${vehiculo.codigo_interno}\n`;
+    }
     
     if (vehiculo.ano) {
       mensaje += `📅 *Año:* ${vehiculo.ano}\n`;
     }
     
     if (vehiculo.kilometraje) {
-      mensaje += `🛣️ *Kilometraje:* ${this.formatNumber(vehiculo.kilometraje)} km\n`;
+      mensaje += `🛣️ *Kilometraje:* ${this.formatNumber(vehiculo.kilometraje)} km (${this.formatNumber(vehiculo.kilometraje_millas)} mi)\n`;
     }
     
     if (vehiculo.motor) {
@@ -673,7 +746,8 @@ class ProductosManager {
     mensaje += `\nMe gustaría obtener más información sobre este vehículo.`;
     mensaje += `\n\n*Información de contacto:*\n`;
     mensaje += `📧 Email: ${this.config.contacto.email}\n`;
-    mensaje += `📍 Ubicación: ${this.config.contacto.ubicacion}`;
+    mensaje += `📍 Ubicación: ${this.config.contacto.ubicacion}\n`;
+    mensaje += `📞 Teléfono: ${this.config.contacto.telefono}`;
     
     return `${this.config.urls.social.whatsapp}?text=${encodeURIComponent(mensaje)}`;
   }
@@ -738,8 +812,8 @@ class ProductosManager {
   }
   
   aplicarFiltrosGuardados() {
-    if (this.filters.estado) {
-      this.currentFilter = this.filters.estado;
+    if (this.filters.estado_inventario) {
+      this.currentFilter = this.filters.estado_inventario;
     }
   }
   
@@ -778,7 +852,7 @@ class ProductosManager {
     await this.cargarVehiculos(true);
     
     if (window.UINotifications) {
-      window.UINotifications.success('Datos actualizados correctamente', 3000);
+      UINotifications.success('Datos actualizados correctamente', 3000);
     }
   }
   
@@ -801,3 +875,4 @@ if (typeof module !== 'undefined' && module.exports) {
   // Hacer disponible globalmente
   window.ProductosManager = ProductosManager;
 }
+[file content end]
