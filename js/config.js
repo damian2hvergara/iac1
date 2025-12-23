@@ -1,6 +1,5 @@
-// config.js - VERSIÓN MÍNIMA
-
-window.CONFIG = {
+// config.js - EXPORTANDO CORRECTAMENTE
+const CONFIG = {
   supabase: {
     url: "https://cflpmluvhfldewiitymh.supabase.co",
     anonKey: "sb_publishable_lvUG-G_2bzDxyVZwAF25HA_30dFAb3K"
@@ -80,3 +79,6 @@ window.CONFIG = {
     userPreferences: "iac_user_prefs"
   }
 };
+
+// Exportar como módulo ES6
+export { CONFIG };
