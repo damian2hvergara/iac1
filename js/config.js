@@ -5,9 +5,9 @@ const CONFIG = {
     url: "https://cflpmluvhfldewiitymh.supabase.co",
     anonKey: "sb_publishable_lvUG-G_2bzDxyVZwAF25HA_30dFAb3K",
     endpoints: {
-      vehiculos: "/rest/v1/vehiculos",
-      imagenes: "/rest/v1/vehiculo_imagenes",
-      kits: "/rest/v1/kits"
+      vehiculos: "/rest/v1/vehiculos_arica",  // CAMBIADO
+      imagenes: "/rest/v1/vehiculos_arica",   // MISMA TABLA
+      kits: "/rest/v1/vehiculos_arica"        // MISMA TABLA
     }
   },
   
@@ -138,13 +138,13 @@ const CONFIG = {
     }
   },
   
-  // URLs
-  urls: {
+ urls: {
     api: {
-      vehiculos: "https://cflpmluvhfldewiitymh.supabase.co/rest/v1/vehiculos",
-      imagenes: "https://cflpmluvhfldewiitymh.supabase.co/rest/v1/vehiculo_imagenes",
-      kits: "https://cflpmluvhfldewiitymh.supabase.co/rest/v1/kits"
-    },
+      vehiculos: "https://cflpmluvhfldewiitymh.supabase.co/rest/v1/vehiculos_arica",  // CAMBIADO
+      imagenes: "https://cflpmluvhfldewiitymh.supabase.co/rest/v1/vehiculos_arica",   // CAMBIADO
+      kits: "https://cflpmluvhfldewiitymh.supabase.co/rest/v1/vehiculos_arica"        // CAMBIADO
+    }
+  },
     social: {
       whatsapp: "https://wa.me/56938654827",
       instagram: "https://www.instagram.com/import_american_cars",
