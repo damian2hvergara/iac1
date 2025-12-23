@@ -40,7 +40,7 @@ const CONFIG = {
     defaultImage: "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
     heroImage: "https://res.cloudinary.com/df2gprqhp/image/upload/v1765988412/CHEVROLET_yjwbxt.jpg",
     
-    // Estados de vehículos
+    // Estados de vehículos (mapeo con tus estados_inventario)
     estados: {
       stock: {
         texto: "En Stock Arica",
@@ -55,14 +55,14 @@ const CONFIG = {
         orden: 2
       },
       reserved: {
-        texto: "Para Reservar",
+        texto: "Reservado",
         color: "#0066cc",
         icono: "fa-calendar-check",
         orden: 3
       }
     },
     
-    // Kits por defecto
+    // Kits por defecto (se actualizan con precios de la tabla)
     kitsDefault: [
       {
         id: "standard",
@@ -82,7 +82,7 @@ const CONFIG = {
       {
         id: "medium",
         nombre: "Medium",
-        precio: 1200000,
+        precio: 1200000, // Valor por defecto, se actualiza desde BD
         descripcion: "Mejoras estéticas y funcionales avanzadas",
         color: "#C0C0C0",
         icon: "fa-medal",
@@ -98,7 +98,7 @@ const CONFIG = {
       {
         id: "full",
         nombre: "Full",
-        precio: 2500000,
+        precio: 2500000, // Valor por defecto, se actualiza desde BD
         descripcion: "Transformación premium completa",
         color: "#FFD700",
         icon: "fa-crown",
