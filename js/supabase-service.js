@@ -31,11 +31,19 @@ class SupabaseService {
       
       const supabase = await this.getClient();
       
-      // CONSULTA ACTUALIZADA CON TUS COLUMNAS REALES
+      // CONSULTA CON TUS COLUMNAS REALES
       const { data, error } = await supabase
         .from('vehiculos_arica')
-        .select('*')
-        .order('created_at', { ascending: false })  // Cambiado a created_at
+        .select(`
+          *,
+          kit_standard_precio,
+          kit_medium_precio,
+          kit_full_precio,
+          comparacion_standard,
+          comparacion_medium,
+          comparacion_full
+        `)
+        .order('created_at', { ascending: false })
         .limit(100);
       
       if (error) {
@@ -82,7 +90,15 @@ class SupabaseService {
       
       const { data, error } = await supabase
         .from('vehiculos_arica')
-        .select('*')
+        .select(`
+          *,
+          kit_standard_precio,
+          kit_medium_precio,
+          kit_full_precio,
+          comparacion_standard,
+          comparacion_medium,
+          comparacion_full
+        `)
         .eq('id', id)
         .single();
       
@@ -144,18 +160,13 @@ class SupabaseService {
     const kilometrajeKm = vehiculo.kilometraje_millas ? 
       Math.round(vehiculo.kilometraje_millas * 1.60934) : 0;
     
-    // Obtener precio del kit
-    const kitStandardPrecio = vehiculo.kit_standard_precio || 0;
-    const kitMediumPrecio = vehiculo.kit_medium_precio || 1200000;
-    const kitFullPrecio = vehiculo.kit_full_precio || 2500000;
-    
     return {
       // DATOS PRINCIPALES
       id: vehiculo.id,
       codigo_interno: vehiculo.codigo_interno || '',
-      nombre: vehiculo.nombre_publico || 'Vehículo', // COLUMNA CORRECTA
+      nombre: vehiculo.nombre_publico || 'Vehículo', // COLUMNA CORRECTA: nombre_publico
       descripcion: vehiculo.descripcion_publica || '',
-      precio: vehiculo.precio_publico || 0, // COLUMNA CORRECTA
+      precio: vehiculo.precio_publico || 0, // COLUMNA CORRECTA: precio_publico
       
       // ESTADO
       estado: estado,
@@ -182,15 +193,16 @@ class SupabaseService {
       transmision: vehiculo.transmision || null,
       tipo_vehiculo: vehiculo.tipo_vehiculo || 'pickup',
       
-      // KITS
-      kit_standard_precio: kitStandardPrecio,
-      kit_medium_precio: kitMediumPrecio,
-      kit_full_precio: kitFullPrecio,
+      // KITS - PRECIOS ESPECÍFICOS DE CADA VEHÍCULO
+      kit_standard_precio: vehiculo.kit_standard_precio || 0,
+      kit_medium_precio: vehiculo.kit_medium_precio || 1200000,
+      kit_full_precio: vehiculo.kit_full_precio || 2500000,
       
       // TAGS Y METADATA
       tags: vehiculo.tags || [],
       proveedor: vehiculo.proveedor || null,
       costo_real: vehiculo.costo_real || 0,
+      video_tour: vehiculo.video_tour,
       
       // STATS
       contador_vistas: vehiculo.contador_vistas || 0,
@@ -202,6 +214,109 @@ class SupabaseService {
       updated_at: vehiculo.updated_at,
       orden: 1 // Valor por defecto
     };
+  }
+
+  async getKits(forceRefresh = false) {
+    const cacheKey = 'kits';
+    const cachedData = this.getFromCache(cacheKey);
+    
+    if (cachedData && !forceRefresh && this.isCacheValid(cachedData.timestamp)) {
+      return cachedData.data;
+    }
+    
+    try {
+      // Obtener kits de la tabla de vehículos para actualizar precios
+      const vehiculos = await this.getVehiculos(forceRefresh);
+      
+      // Usar los kits por defecto del config pero con precios actualizados
+      let kits = [...this.config.app.kitsDefault];
+      
+      // Si hay vehículos, actualizar precios de kits con valores de la BD
+      if (vehiculos.length > 0) {
+        // Tomar el primer vehículo como referencia para precios (o podrías promediar)
+        const vehiculoRef = vehiculos[0];
+        
+        kits = kits.map(kit => {
+          const kitActualizado = { ...kit };
+          
+          // Actualizar precios según la base de datos
+          if (kit.id === 'medium' && vehiculoRef.kit_medium_precio) {
+            kitActualizado.precio = vehiculoRef.kit_medium_precio;
+          } else if (kit.id === 'full' && vehiculoRef.kit_full_precio) {
+            kitActualizado.precio = vehiculoRef.kit_full_precio;
+          } else if (kit.id === 'standard' && vehiculoRef.kit_standard_precio !== undefined) {
+            kitActualizado.precio = vehiculoRef.kit_standard_precio;
+          }
+          
+          return kitActualizado;
+        });
+      }
+      
+      this.saveToCache(cacheKey, kits);
+      this.saveToLocalStorage('kits', kits);
+      
+      return kits;
+      
+    } catch (error) {
+      console.error('❌ Error obteniendo kits:', error);
+      
+      // Fallback a localStorage
+      const fallbackData = this.getFromLocalStorage('kits');
+      if (fallbackData) {
+        return fallbackData;
+      }
+      
+      return this.config.app.kitsDefault;
+    }
+  }
+
+  async searchVehiculos(query, filters = {}) {
+    try {
+      const supabase = await this.getClient();
+      
+      let consulta = supabase
+        .from('vehiculos_arica')
+        .select('*');
+      
+      // Aplicar búsqueda de texto
+      if (query) {
+        consulta = consulta.or(`nombre_publico.ilike.%${query}%,descripcion_publica.ilike.%${query}%,marca.ilike.%${query}%,modelo.ilike.%${query}%`);
+      }
+      
+      // Aplicar filtros
+      if (filters.estado_inventario) {
+        consulta = consulta.eq('estado_inventario', filters.estado_inventario);
+      }
+      
+      if (filters.marca) {
+        consulta = consulta.eq('marca', filters.marca);
+      }
+      
+      if (filters.tipo_vehiculo) {
+        consulta = consulta.eq('tipo_vehiculo', filters.tipo_vehiculo);
+      }
+      
+      // Ordenar
+      if (filters.sortBy) {
+        consulta = consulta.order(filters.sortBy, { 
+          ascending: filters.sortOrder === 'asc' 
+        });
+      } else {
+        consulta = consulta.order('created_at', { ascending: false });
+      }
+      
+      const { data, error } = await consulta;
+      
+      if (error) {
+        throw new Error(`Error Supabase: ${error.message}`);
+      }
+      
+      return data.map(v => this.procesarVehiculo(v));
+      
+    } catch (error) {
+      console.error('❌ Error buscando vehículos:', error);
+      return [];
+    }
   }
   
   // Cache management
