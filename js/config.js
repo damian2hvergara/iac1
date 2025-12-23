@@ -1,8 +1,5 @@
-[file name]: config.js
-[file content begin]
 // ===================== CONFIGURACIÓN CENTRALIZADA =====================
 const CONFIG = {
-  // Supabase Configuration
   supabase: {
     url: "https://cflpmluvhfldewiitymh.supabase.co",
     anonKey: "sb_publishable_lvUG-G_2bzDxyVZwAF25HA_30dFAb3K",
@@ -13,7 +10,6 @@ const CONFIG = {
     }
   },
   
-  // Contact Information
   contacto: {
     whatsapp: "56938654827",
     instagram: "import_american_cars",
@@ -24,23 +20,19 @@ const CONFIG = {
     horario: "Lunes a Viernes 9:00 - 19:00"
   },
   
-  // Application Settings
   app: {
     nombre: "Import American Cars Arica",
     tagline: "El desierto merece su leyenda.",
     version: "2.0.0",
     
-    // Features
     mostrarPrecios: true,
     mostrarWhatsApp: true,
     mostrarInstagram: true,
     mostrarKits: true,
     
-    // Default Images
     defaultImage: "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
     heroImage: "https://res.cloudinary.com/df2gprqhp/image/upload/v1765988412/CHEVROLET_yjwbxt.jpg",
     
-    // Estados de vehículos (mapeo con tus estados_inventario)
     estados: {
       stock: {
         texto: "En Stock Arica",
@@ -62,7 +54,6 @@ const CONFIG = {
       }
     },
     
-    // Kits por defecto (se actualizan con precios de la tabla)
     kitsDefault: [
       {
         id: "standard",
@@ -82,7 +73,7 @@ const CONFIG = {
       {
         id: "medium",
         nombre: "Medium",
-        precio: 1200000, // Valor por defecto, se actualiza desde BD
+        precio: 1200000,
         descripcion: "Mejoras estéticas y funcionales avanzadas",
         color: "#C0C0C0",
         icon: "fa-medal",
@@ -98,7 +89,7 @@ const CONFIG = {
       {
         id: "full",
         nombre: "Full",
-        precio: 2500000, // Valor por defecto, se actualiza desde BD
+        precio: 2500000,
         descripcion: "Transformación premium completa",
         color: "#FFD700",
         icon: "fa-crown",
@@ -114,14 +105,12 @@ const CONFIG = {
       }
     ],
     
-    // Analytics
     analytics: {
       googleAnalyticsId: null,
       facebookPixelId: null,
       hotjarId: null
     },
     
-    // Performance
     performance: {
       lazyLoadImages: true,
       preloadCriticalAssets: true,
@@ -130,7 +119,6 @@ const CONFIG = {
       throttleTime: 100
     },
     
-    // SEO
     seo: {
       title: "Import American Cars Arica | Vehículos Americanos Premium",
       description: "Importamos los vehículos americanos más icónicos para que escribas tu propia historia en el desierto más extenso del mundo.",
@@ -140,7 +128,6 @@ const CONFIG = {
     }
   },
   
-  // URLs
   urls: {
     api: {
       vehiculos: "https://cflpmluvhfldewiitymh.supabase.co/rest/v1/vehiculos_arica",
@@ -155,7 +142,6 @@ const CONFIG = {
     }
   },
   
-  // Local Storage Keys
   storageKeys: {
     vehiculos: "iac_vehiculos_cache",
     kits: "iac_kits_cache",
@@ -165,11 +151,9 @@ const CONFIG = {
   }
 };
 
-// Exportar para módulos ES6
+// Exportar para uso global
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = CONFIG;
 } else {
-  // Hacer disponible globalmente
   window.CONFIG = CONFIG;
 }
-[file content end]
