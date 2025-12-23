@@ -1,3 +1,5 @@
+[file name]: supabase-service.js
+[file content begin]
 // ===================== SUPABASE SERVICE MEJORADO =====================
 class SupabaseService {
   constructor(config) {
@@ -29,10 +31,11 @@ class SupabaseService {
       
       const supabase = await this.getClient();
       
+      // CONSULTA ACTUALIZADA CON TUS COLUMNAS REALES
       const { data, error } = await supabase
         .from('vehiculos_arica')
         .select('*')
-        .order('orden', { ascending: true })
+        .order('created_at', { ascending: false })  // Cambiado a created_at
         .limit(100);
       
       if (error) {
@@ -41,7 +44,7 @@ class SupabaseService {
       
       console.log(`✅ ${data.length} vehículos obtenidos`);
       
-      // Procesar vehículos
+      // Procesar vehículos con estructura correcta
       const vehiculosCompletos = data.map(vehiculo => 
         this.procesarVehiculo(vehiculo)
       );
@@ -101,54 +104,105 @@ class SupabaseService {
     }
   }
 
-  // Procesar vehículo - ajustado para tu estructura
+  // Procesar vehículo - AJUSTADO A TU ESTRUCTURA REAL
   procesarVehiculo(vehiculo) {
-    // Extraer imágenes del campo images si existe
+    // Recoger todas las imágenes disponibles
     let imagenes = [];
-    if (vehiculo.images) {
-      try {
-        imagenes = JSON.parse(vehiculo.images);
-      } catch (e) {
-        imagenes = [vehiculo.images];
-      }
+    
+    // Agregar todas las fotos disponibles
+    if (vehiculo.foto_portada) imagenes.push(vehiculo.foto_portada);
+    if (vehiculo.foto_lateral) imagenes.push(vehiculo.foto_lateral);
+    if (vehiculo.foto_frontal) imagenes.push(vehiculo.foto_frontal);
+    if (vehiculo.foto_trasera) imagenes.push(vehiculo.foto_trasera);
+    if (vehiculo.foto_interior) imagenes.push(vehiculo.foto_interior);
+    if (vehiculo.foto_motor) imagenes.push(vehiculo.foto_motor);
+    
+    // Si no hay imágenes, usar la default
+    if (imagenes.length === 0) {
+      imagenes.push(this.config.app.defaultImage);
     }
     
-    // Determinar estado basado en tus campos
-    let estado = 'stock';
-    if (vehiculo.disponibilidad) {
-      const disp = vehiculo.disponibilidad.toLowerCase();
-      if (disp.includes('transito') || disp.includes('tránsito')) estado = 'transit';
-      if (disp.includes('reserva')) estado = 'reserved';
+    // Determinar estado basado en estado_inventario
+    let estado = 'stock'; // por defecto
+    
+    // Mapear tus estados a los del sistema
+    if (vehiculo.estado_inventario) {
+      const estadoInventario = vehiculo.estado_inventario.toLowerCase();
+      
+      if (estadoInventario.includes('disponible') || estadoInventario.includes('stock')) {
+        estado = 'stock';
+      } else if (estadoInventario.includes('reservado') || estadoInventario.includes('reserva')) {
+        estado = 'reserved';
+      } else if (estadoInventario.includes('transito') || estadoInventario.includes('tránsito')) {
+        estado = 'transit';
+      }
     }
     
     const estadoConfig = this.config.app.estados[estado] || this.config.app.estados.stock;
     
+    // Convertir millas a kilómetros aproximadamente
+    const kilometrajeKm = vehiculo.kilometraje_millas ? 
+      Math.round(vehiculo.kilometraje_millas * 1.60934) : 0;
+    
+    // Obtener precio del kit
+    const kitStandardPrecio = vehiculo.kit_standard_precio || 0;
+    const kitMediumPrecio = vehiculo.kit_medium_precio || 1200000;
+    const kitFullPrecio = vehiculo.kit_full_precio || 2500000;
+    
     return {
-      id: vehiculo.id || vehiculo.codigo,
-      nombre: vehiculo.nombre || vehiculo.titulo || 'Vehículo',
-      descripcion: vehiculo.descripcion || vehiculo.detalles || 'Vehículo americano importado',
-      precio: vehiculo.precio || vehiculo.valor || 0,
+      // DATOS PRINCIPALES
+      id: vehiculo.id,
+      codigo_interno: vehiculo.codigo_interno || '',
+      nombre: vehiculo.nombre_publico || 'Vehículo', // COLUMNA CORRECTA
+      descripcion: vehiculo.descripcion_publica || '',
+      precio: vehiculo.precio_publico || 0, // COLUMNA CORRECTA
+      
+      // ESTADO
       estado: estado,
       estadoTexto: estadoConfig.texto,
       estadoColor: estadoConfig.color,
       estadoIcono: estadoConfig.icono,
+      estado_inventario: vehiculo.estado_inventario,
+      
+      // IMÁGENES
       imagenes: imagenes,
-      imagen_principal: imagenes[0] || vehiculo.imagen_principal || this.config.app.defaultImage,
-      ano: vehiculo.ano || vehiculo.año || null,
-      color: vehiculo.color || null,
+      imagen_principal: imagenes[0] || this.config.app.defaultImage,
+      comparacion_standard: vehiculo.comparacion_standard,
+      comparacion_medium: vehiculo.comparacion_medium,
+      comparacion_full: vehiculo.comparacion_full,
+      
+      // ESPECIFICACIONES
+      ano: vehiculo.ano || null,
+      color: vehiculo.color_exterior || null,
       motor: vehiculo.motor || null,
-      kilometraje: vehiculo.kilometraje || vehiculo.kilometros || 0,
-      modelo: vehiculo.modelo || null,
+      kilometraje: kilometrajeKm, // Convertido a km
+      kilometraje_millas: vehiculo.kilometraje_millas || 0,
       marca: vehiculo.marca || null,
-      transmision: vehiculo.transmision || vehiculo.caja || null,
-      combustible: vehiculo.combustible || null,
+      modelo: vehiculo.modelo || null,
+      transmision: vehiculo.transmision || null,
+      tipo_vehiculo: vehiculo.tipo_vehiculo || 'pickup',
+      
+      // KITS
+      kit_standard_precio: kitStandardPrecio,
+      kit_medium_precio: kitMediumPrecio,
+      kit_full_precio: kitFullPrecio,
+      
+      // TAGS Y METADATA
+      tags: vehiculo.tags || [],
+      proveedor: vehiculo.proveedor || null,
+      costo_real: vehiculo.costo_real || 0,
+      
+      // STATS
+      contador_vistas: vehiculo.contador_vistas || 0,
+      contador_whatsapp: vehiculo.contador_whatsapp || 0,
+      fecha_ultima_vista: vehiculo.fecha_ultima_vista,
+      
+      // TIMESTAMPS
       created_at: vehiculo.created_at,
       updated_at: vehiculo.updated_at,
-      orden: vehiculo.orden || 999
+      orden: 1 // Valor por defecto
     };
   }
-  
-}
   
   // Cache management
   getFromCache(key) {
@@ -226,35 +280,32 @@ class SupabaseService {
   // Método para obtener estadísticas
   async getStats() {
     try {
-      const url = `${this.config.supabase.url}${this.config.supabase.endpoints.vehiculos}?select=estado`;
+      const supabase = await this.getClient();
       
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'apikey': this.config.supabase.anonKey,
-          'Authorization': `Bearer ${this.config.supabase.anonKey}`,
-          'Content-Type': 'application/json',
-          'Prefer': 'count=exact'
-        }
-      });
+      const { data, error } = await supabase
+        .from('vehiculos_arica')
+        .select('estado_inventario');
       
-      if (!response.ok) {
-        throw new Error(`Error HTTP: ${response.status}`);
+      if (error) {
+        throw new Error(`Error Supabase: ${error.message}`);
       }
       
-      const vehiculos = await response.json();
-      const total = response.headers.get('content-range')?.split('/')[1] || vehiculos.length;
-      
       const stats = {
-        total: parseInt(total),
+        total: data.length,
         stock: 0,
         transit: 0,
         reserved: 0
       };
       
-      vehiculos.forEach(v => {
-        if (stats[v.estado] !== undefined) {
-          stats[v.estado]++;
+      data.forEach(v => {
+        const estado = v.estado_inventario?.toLowerCase() || '';
+        
+        if (estado.includes('disponible') || estado.includes('stock')) {
+          stats.stock++;
+        } else if (estado.includes('transito') || estado.includes('tránsito')) {
+          stats.transit++;
+        } else if (estado.includes('reservado') || estado.includes('reserva')) {
+          stats.reserved++;
         }
       });
       
@@ -274,3 +325,4 @@ if (typeof module !== 'undefined' && module.exports) {
   // Hacer disponible globalmente
   window.SupabaseService = SupabaseService;
 }
+[file content end]
