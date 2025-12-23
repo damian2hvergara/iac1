@@ -1,3 +1,5 @@
+[file name]: config.js
+[file content begin]
 // ===================== CONFIGURACIÓN CENTRALIZADA =====================
 const CONFIG = {
   // Supabase Configuration
@@ -5,9 +7,9 @@ const CONFIG = {
     url: "https://cflpmluvhfldewiitymh.supabase.co",
     anonKey: "sb_publishable_lvUG-G_2bzDxyVZwAF25HA_30dFAb3K",
     endpoints: {
-      vehiculos: "/rest/v1/vehiculos_arica",  // CAMBIADO
-      imagenes: "/rest/v1/vehiculos_arica",   // MISMA TABLA
-      kits: "/rest/v1/vehiculos_arica"        // MISMA TABLA
+      vehiculos: "/rest/v1/vehiculos_arica",
+      imagenes: "/rest/v1/vehiculos_arica",
+      kits: "/rest/v1/vehiculos_arica"
     }
   },
   
@@ -114,16 +116,16 @@ const CONFIG = {
     
     // Analytics
     analytics: {
-      googleAnalyticsId: null, // "UA-XXXXXXXXX-X"
-      facebookPixelId: null,   // "XXXXXXXXXXXXXXX"
-      hotjarId: null           // "XXXXXXXX"
+      googleAnalyticsId: null,
+      facebookPixelId: null,
+      hotjarId: null
     },
     
     // Performance
     performance: {
       lazyLoadImages: true,
       preloadCriticalAssets: true,
-      cacheDuration: 3600, // 1 hora en segundos
+      cacheDuration: 3600,
       debounceTime: 300,
       throttleTime: 100
     },
@@ -138,13 +140,13 @@ const CONFIG = {
     }
   },
   
- urls: {
+  // URLs
+  urls: {
     api: {
-      vehiculos: "https://cflpmluvhfldewiitymh.supabase.co/rest/v1/vehiculos_arica",  // CAMBIADO
-      imagenes: "https://cflpmluvhfldewiitymh.supabase.co/rest/v1/vehiculos_arica",   // CAMBIADO
-      kits: "https://cflpmluvhfldewiitymh.supabase.co/rest/v1/vehiculos_arica"        // CAMBIADO
-    }
-  },
+      vehiculos: "https://cflpmluvhfldewiitymh.supabase.co/rest/v1/vehiculos_arica",
+      imagenes: "https://cflpmluvhfldewiitymh.supabase.co/rest/v1/vehiculos_arica",
+      kits: "https://cflpmluvhfldewiitymh.supabase.co/rest/v1/vehiculos_arica"
+    },
     social: {
       whatsapp: "https://wa.me/56938654827",
       instagram: "https://www.instagram.com/import_american_cars",
@@ -170,3 +172,4 @@ if (typeof module !== 'undefined' && module.exports) {
   // Hacer disponible globalmente
   window.CONFIG = CONFIG;
 }
+[file content end]
