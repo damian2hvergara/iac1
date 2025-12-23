@@ -1,178 +1,319 @@
-// supabase-service.js - VERSIÓN SIMPLIFICADA Y CORREGIDA
-
-// ===================== SUPABASE SERVICE =====================
+[file name]: supabase-service.js
+[file content begin]
+// ===================== SUPABASE SERVICE MEJORADO =====================
 class SupabaseService {
   constructor(config) {
     this.config = config || window.CONFIG;
     this.supabaseUrl = this.config.supabase.url;
     this.supabaseKey = this.config.supabase.anonKey;
-    this.cacheDuration = 3600000; // 1 hora
+    this.cacheDuration = this.config.app.performance.cacheDuration * 1000;
     this.cache = new Map();
   }
 
-  // Crear cliente Supabase
+  // Función para crear cliente Supabase
   async getClient() {
+    // Cargar dinámicamente el cliente Supabase
     const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm');
     return createClient(this.supabaseUrl, this.supabaseKey);
   }
 
-  // Obtener vehículos
+  async testConnection() {
+    try {
+      console.log('🔌 Probando conexión con Supabase...');
+      const supabase = await this.getClient();
+      
+      // Prueba simple de conexión
+      const { data, error } = await supabase
+        .from('vehiculos_arica')
+        .select('count', { count: 'exact', head: true })
+        .limit(1);
+      
+      if (error) {
+        console.error('❌ Error de conexión a Supabase:', error);
+        return false;
+      }
+      
+      console.log('✅ Conexión exitosa con Supabase');
+      return true;
+      
+    } catch (error) {
+      console.error('❌ Error en testConnection:', error);
+      return false;
+    }
+  }
+
   async getVehiculos(forceRefresh = false) {
     const cacheKey = 'vehiculos';
     const cachedData = this.getFromCache(cacheKey);
     
     if (cachedData && !forceRefresh && this.isCacheValid(cachedData.timestamp)) {
-      console.log('📦 Vehículos desde cache');
+      console.log('📦 Retornando vehículos desde cache');
       return cachedData.data;
     }
     
     try {
-      console.log('🌐 Obteniendo vehículos...');
+      console.log('🌐 Obteniendo vehículos desde Supabase...');
       
       const supabase = await this.getClient();
       
       const { data, error } = await supabase
         .from('vehiculos_arica')
         .select('*')
-        .order('created_at', { ascending: false })
+        .order('orden', { ascending: true })
         .limit(100);
       
-      if (error) throw new Error(`Supabase: ${error.message}`);
+      if (error) {
+        throw new Error(`Error Supabase: ${error.message}`);
+      }
       
       console.log(`✅ ${data.length} vehículos obtenidos`);
       
-      const vehiculosCompletos = data.map(v => this.procesarVehiculo(v));
+      // Procesar vehículos
+      const vehiculosCompletos = data.map(vehiculo => 
+        this.procesarVehiculo(vehiculo)
+      );
       
+      // Guardar en cache
       this.saveToCache(cacheKey, vehiculosCompletos);
       this.saveToLocalStorage('vehiculos', vehiculosCompletos);
       
       return vehiculosCompletos;
       
     } catch (error) {
-      console.error('❌ Error:', error);
+      console.error('❌ Error obteniendo vehículos:', error);
       
       // Fallback a localStorage
-      const fallback = this.getFromLocalStorage('vehiculos');
-      if (fallback) {
-        console.log('🔄 Usando datos locales');
-        return fallback;
+      const fallbackData = this.getFromLocalStorage('vehiculos');
+      if (fallbackData) {
+        console.log('🔄 Usando datos de localStorage como fallback');
+        return fallbackData;
       }
       
       return [];
     }
   }
 
-  // Procesar vehículo
-  procesarVehiculo(vehiculo) {
-    // Recoger imágenes
-    let imagenes = [];
-    if (vehiculo.foto_portada) imagenes.push(vehiculo.foto_portada);
-    if (vehiculo.foto_lateral) imagenes.push(vehiculo.foto_lateral);
-    if (vehiculo.foto_frontal) imagenes.push(vehiculo.foto_frontal);
-    if (vehiculo.foto_trasera) imagenes.push(vehiculo.foto_trasera);
-    if (vehiculo.foto_interior) imagenes.push(vehiculo.foto_interior);
-    if (vehiculo.foto_motor) imagenes.push(vehiculo.foto_motor);
+  async getVehiculoById(id, forceRefresh = false) {
+    const cacheKey = `vehiculo_${id}`;
+    const cachedData = this.getFromCache(cacheKey);
     
-    if (imagenes.length === 0) {
-      imagenes.push(this.config.app.defaultImage);
+    if (cachedData && !forceRefresh && this.isCacheValid(cachedData.timestamp)) {
+      return cachedData.data;
     }
     
-    // Determinar estado
-    let estado = 'stock';
-    if (vehiculo.estado_inventario) {
-      const estadoInventario = vehiculo.estado_inventario.toLowerCase();
-      if (estadoInventario.includes('disponible') || estadoInventario.includes('stock')) estado = 'stock';
-      else if (estadoInventario.includes('reservado')) estado = 'reserved';
-      else if (estadoInventario.includes('transito')) estado = 'transit';
+    try {
+      const supabase = await this.getClient();
+      
+      const { data, error } = await supabase
+        .from('vehiculos_arica')
+        .select('*')
+        .eq('id', id)
+        .single();
+      
+      if (error) {
+        throw new Error(`Error Supabase: ${error.message}`);
+      }
+      
+      const vehiculoCompleto = this.procesarVehiculo(data);
+      this.saveToCache(cacheKey, vehiculoCompleto);
+      
+      return vehiculoCompleto;
+      
+    } catch (error) {
+      console.error(`❌ Error obteniendo vehículo ${id}:`, error);
+      
+      // Buscar en cache general
+      const allVehicles = this.getFromCache('vehiculos')?.data || [];
+      return allVehicles.find(v => v.id === id) || null;
     }
-    
-    const estadoConfig = this.config.app.estados[estado] || this.config.app.estados.stock;
-    
-    // Convertir millas a km
-    const kilometrajeKm = vehiculo.kilometraje_millas ? 
-      Math.round(vehiculo.kilometraje_millas * 1.60934) : 0;
-    
-    return {
-      id: vehiculo.id,
-      codigo_interno: vehiculo.codigo_interno || '',
-      nombre: vehiculo.nombre_publico || 'Vehículo',
-      descripcion: vehiculo.descripcion_publica || '',
-      precio: vehiculo.precio_publico || 0,
-      estado: estado,
-      estadoTexto: estadoConfig.texto,
-      estadoColor: estadoConfig.color,
-      estadoIcono: estadoConfig.icono,
-      estado_inventario: vehiculo.estado_inventario,
-      imagenes: imagenes,
-      imagen_principal: imagenes[0],
-      ano: vehiculo.ano || null,
-      color: vehiculo.color_exterior || null,
-      motor: vehiculo.motor || null,
-      kilometraje: kilometrajeKm,
-      kilometraje_millas: vehiculo.kilometraje_millas || 0,
-      marca: vehiculo.marca || null,
-      modelo: vehiculo.modelo || null,
-      transmision: vehiculo.transmision || null,
-      tipo_vehiculo: vehiculo.tipo_vehiculo || 'pickup',
-      kit_standard_precio: vehiculo.kit_standard_precio || 0,
-      kit_medium_precio: vehiculo.kit_medium_precio || 1200000,
-      kit_full_precio: vehiculo.kit_full_precio || 2500000,
-      tags: vehiculo.tags || [],
-      created_at: vehiculo.created_at
-    };
   }
 
-  // Obtener kits
   async getKits(forceRefresh = false) {
+    const cacheKey = 'kits';
+    const cachedData = this.getFromCache(cacheKey);
+    
+    if (cachedData && !forceRefresh && this.isCacheValid(cachedData.timestamp)) {
+      console.log('📦 Retornando kits desde cache');
+      return cachedData.data;
+    }
+    
     try {
-      // Obtener vehículos para actualizar precios
-      const vehiculos = await this.getVehiculos(forceRefresh);
+      console.log('🌐 Obteniendo kits desde Supabase...');
       
-      // Kits por defecto
-      let kits = [...this.config.app.kitsDefault];
+      // En tu caso, los kits están en la misma tabla 'vehiculos_arica'
+      // pero con un tipo diferente. Ajusta esto según tu estructura real
+      const supabase = await this.getClient();
       
-      if (vehiculos.length > 0) {
-        const vehiculoRef = vehiculos[0];
-        kits = kits.map(kit => {
-          const kitActualizado = { ...kit };
-          if (kit.id === 'medium' && vehiculoRef.kit_medium_precio) {
-            kitActualizado.precio = vehiculoRef.kit_medium_precio;
-          } else if (kit.id === 'full' && vehiculoRef.kit_full_precio) {
-            kitActualizado.precio = vehiculoRef.kit_full_precio;
-          }
-          return kitActualizado;
-        });
-      }
+      // Si tienes una tabla separada para kits, cambia esto
+      // Por ahora, devolver los kits por defecto del config
+      const kits = this.config.app.kitsDefault;
+      
+      // Guardar en cache
+      this.saveToCache(cacheKey, kits);
+      this.saveToLocalStorage('kits', kits);
       
       return kits;
       
     } catch (error) {
-      console.error('❌ Error kits:', error);
+      console.error('❌ Error obteniendo kits:', error);
+      
+      // Fallback a localStorage
+      const fallbackData = this.getFromLocalStorage('kits');
+      if (fallbackData) {
+        console.log('🔄 Usando kits de localStorage como fallback');
+        return fallbackData;
+      }
+      
+      // Último fallback: kits por defecto del config
       return this.config.app.kitsDefault;
     }
   }
 
-  // Cache methods
+  async searchVehiculos(query = '', filters = {}) {
+    try {
+      console.log(`🔍 Buscando vehículos: "${query}"`, filters);
+      
+      const supabase = await this.getClient();
+      let queryBuilder = supabase
+        .from('vehiculos_arica')
+        .select('*');
+      
+      // Aplicar búsqueda por texto si existe
+      if (query) {
+        queryBuilder = queryBuilder.or(`nombre.ilike.%${query}%,descripcion.ilike.%${query}%,marca.ilike.%${query}%,modelo.ilike.%${query}%`);
+      }
+      
+      // Aplicar filtros
+      if (filters.estado) {
+        queryBuilder = queryBuilder.eq('estado', filters.estado);
+      }
+      
+      if (filters.marca) {
+        queryBuilder = queryBuilder.eq('marca', filters.marca);
+      }
+      
+      if (filters.minPrecio) {
+        queryBuilder = queryBuilder.gte('precio', filters.minPrecio);
+      }
+      
+      if (filters.maxPrecio) {
+        queryBuilder = queryBuilder.lte('precio', filters.maxPrecio);
+      }
+      
+      // Ordenar
+      if (filters.sortBy) {
+        queryBuilder = queryBuilder.order(filters.sortBy, { 
+          ascending: filters.sortOrder === 'asc' 
+        });
+      } else {
+        queryBuilder = queryBuilder.order('orden', { ascending: true });
+      }
+      
+      const { data, error } = await queryBuilder;
+      
+      if (error) {
+        throw new Error(`Error Supabase: ${error.message}`);
+      }
+      
+      // Procesar vehículos
+      const resultados = data.map(vehiculo => 
+        this.procesarVehiculo(vehiculo)
+      );
+      
+      console.log(`✅ ${resultados.length} resultados encontrados`);
+      return resultados;
+      
+    } catch (error) {
+      console.error('❌ Error buscando vehículos:', error);
+      return [];
+    }
+  }
+
+  // Procesar vehículo - ajustado para tu estructura
+  procesarVehiculo(vehiculo) {
+    // Extraer imágenes del campo images si existe
+    let imagenes = [];
+    if (vehiculo.images) {
+      try {
+        imagenes = JSON.parse(vehiculo.images);
+      } catch (e) {
+        imagenes = [vehiculo.images];
+      }
+    }
+    
+    // Determinar estado basado en tus campos
+    let estado = 'stock';
+    if (vehiculo.disponibilidad) {
+      const disp = vehiculo.disponibilidad.toLowerCase();
+      if (disp.includes('transito') || disp.includes('tránsito')) estado = 'transit';
+      if (disp.includes('reserva')) estado = 'reserved';
+    } else if (vehiculo.estado) {
+      estado = vehiculo.estado;
+    }
+    
+    const estadoConfig = this.config.app.estados[estado] || this.config.app.estados.stock;
+    
+    return {
+      id: vehiculo.id || vehiculo.codigo || `vehiculo-${Date.now()}`,
+      nombre: vehiculo.nombre || vehiculo.titulo || 'Vehículo',
+      descripcion: vehiculo.descripcion || vehiculo.detalles || 'Vehículo americano importado',
+      precio: vehiculo.precio || vehiculo.valor || 0,
+      estado: estado,
+      estadoTexto: estadoConfig.texto,
+      estadoColor: estadoConfig.color,
+      estadoIcono: estadoConfig.icono,
+      imagenes: imagenes,
+      imagen_principal: imagenes[0] || vehiculo.imagen_principal || this.config.app.defaultImage,
+      ano: vehiculo.ano || vehiculo.año || null,
+      color: vehiculo.color || null,
+      motor: vehiculo.motor || null,
+      kilometraje: vehiculo.kilometraje || vehiculo.kilometros || 0,
+      modelo: vehiculo.modelo || null,
+      marca: vehiculo.marca || null,
+      transmision: vehiculo.transmision || vehiculo.caja || null,
+      combustible: vehiculo.combustible || null,
+      created_at: vehiculo.created_at,
+      updated_at: vehiculo.updated_at,
+      orden: vehiculo.orden || 999
+    };
+  }
+  
+  // Cache management
   getFromCache(key) {
     return this.cache.get(key);
   }
   
   saveToCache(key, data) {
-    this.cache.set(key, { data, timestamp: Date.now() });
+    this.cache.set(key, {
+      data,
+      timestamp: Date.now()
+    });
   }
   
   isCacheValid(timestamp) {
     return Date.now() - timestamp < this.cacheDuration;
   }
   
+  clearCache(key = null) {
+    if (key) {
+      this.cache.delete(key);
+    } else {
+      this.cache.clear();
+    }
+  }
+  
+  // LocalStorage management
   saveToLocalStorage(key, data) {
     try {
       localStorage.setItem(
         this.config.storageKeys[key] || key,
-        JSON.stringify({ data, timestamp: Date.now() })
+        JSON.stringify({
+          data,
+          timestamp: Date.now()
+        })
       );
     } catch (error) {
-      console.error('❌ Error localStorage:', error);
+      console.error('❌ Error guardando en localStorage:', error);
     }
   }
   
@@ -186,11 +327,51 @@ class SupabaseService {
         }
       }
     } catch (error) {
-      console.error('❌ Error localStorage:', error);
+      console.error('❌ Error obteniendo de localStorage:', error);
     }
     return null;
   }
+  
+  // Método para obtener estadísticas
+  async getStats() {
+    try {
+      const supabase = await this.getClient();
+      
+      const { data, error } = await supabase
+        .from('vehiculos_arica')
+        .select('estado');
+      
+      if (error) {
+        throw new Error(`Error Supabase: ${error.message}`);
+      }
+      
+      const stats = {
+        total: data.length,
+        stock: 0,
+        transit: 0,
+        reserved: 0
+      };
+      
+      data.forEach(v => {
+        if (stats[v.estado] !== undefined) {
+          stats[v.estado]++;
+        }
+      });
+      
+      return stats;
+      
+    } catch (error) {
+      console.error('❌ Error obteniendo estadísticas:', error);
+      return null;
+    }
+  }
 }
 
-// Hacer disponible globalmente
-window.SupabaseService = SupabaseService;
+// Exportar para módulos ES6
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = SupabaseService;
+} else {
+  // Hacer disponible globalmente
+  window.SupabaseService = SupabaseService;
+}
+[file content end]
