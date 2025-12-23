@@ -5,13 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Import American Cars Arica | El desierto merece su leyenda.</title>
     
-    <!-- Meta tags SEO -->
+    <!-- Meta tags SEO mejorados -->
     <meta name="description" content="Importamos los vehículos americanos más icónicos para que escribas tu propia historia en el desierto más extenso del mundo.">
-    <meta name="keywords" content="vehículos americanos, importación USA, Arica, kits upgrade, Ford, Chevrolet, RAM, 4x4, camionetas">
+    <meta name="keywords" content="vehículos americanos, importación USA, Arica, kits upgrade, Ford, Chevrolet, RAM, 4x4, camionetas, pickup, SUV, deportivos">
+    <meta name="author" content="Import American Cars Arica">
     <meta name="theme-color" content="#000000">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="format-detection" content="telephone=no">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://importamericancars.cl/">
+    <meta property="og:title" content="Import American Cars Arica">
+    <meta property="og:description" content="Importamos los vehículos americanos más icónicos para que escribas tu propia historia en el desierto más extenso del mundo.">
+    <meta property="og:image" content="https://res.cloudinary.com/df2gprqhp/image/upload/v1765988412/CHEVROLET_yjwbxt.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://importamericancars.cl/">
+    <meta property="twitter:title" content="Import American Cars Arica">
+    <meta property="twitter:description" content="Importamos los vehículos americanos más icónicos para que escribas tu propia historia en el desierto más extenso del mundo.">
+    <meta property="twitter:image" content="https://res.cloudinary.com/df2gprqhp/image/upload/v1765988412/CHEVROLET_yjwbxt.jpg">
     
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -21,41 +38,102 @@
     
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    
+    <!-- Preload critical resources -->
+    <link rel="preload" href="css/styles.css" as="style">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="preconnect" href="https://res.cloudinary.com">
+    
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "AutoDealer",
+      "name": "Import American Cars Arica",
+      "description": "Importación de vehículos americanos premium y kits de personalización.",
+      "url": "https://importamericancars.cl",
+      "logo": "https://importamericancars.cl/logo.png",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Arica",
+        "addressRegion": "Región de Arica y Parinacota",
+        "addressCountry": "CL"
+      },
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "telephone": "+56-9-3865-4827",
+        "contactType": "Customer Service",
+        "areaServed": "CL",
+        "availableLanguage": "Spanish"
+      },
+      "sameAs": [
+        "https://www.instagram.com/import_american_cars"
+      ]
+    }
+    </script>
 </head>
 <body>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-content">
+            <div class="loading-spinner">
+                <i class="fas fa-car"></i>
+            </div>
+            <p class="loading-text">Cargando...</p>
+        </div>
+    </div>
+
     <!-- Header -->
-    <header class="header">
+    <header class="header" id="mainHeader">
         <div class="header-container">
             <div class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-car"></i>
+                </div>
                 <span class="logo-text">Import American Cars Arica</span>
             </div>
-            <nav class="nav">
+            <nav class="nav" aria-label="Navegación principal">
                 <ul class="nav-links">
-                    <li><a href="#vehicles" class="nav-link">Vehículos</a></li>
-                    <li><a href="#customize" class="nav-link">Kits Upgrade</a></li>
-                    <li><a href="#instagram" class="nav-link">Instagram</a></li>
-                    <li><a href="#contact" class="nav-link">Contacto</a></li>
+                    <li><a href="#vehicles" class="nav-link" data-scroll="vehicles">Vehículos</a></li>
+                    <li><a href="#customize" class="nav-link" data-scroll="customize">Kits Upgrade</a></li>
+                    <li><a href="#instagram" class="nav-link" data-scroll="instagram">Instagram</a></li>
+                    <li><a href="#contact" class="nav-link" data-scroll="contact">Contacto</a></li>
                 </ul>
             </nav>
-            <button class="menu-toggle" id="menuToggle" aria-label="Menú">
+            <button class="menu-toggle" id="menuToggle" aria-label="Menú" aria-expanded="false" aria-controls="mobileMenu">
                 <i class="fas fa-bars"></i>
             </button>
         </div>
     </header>
 
     <!-- Mobile Menu -->
-    <div class="mobile-menu" id="mobileMenu">
-        <a href="#vehicles" class="mobile-nav-link">Vehículos</a>
-        <a href="#customize" class="mobile-nav-link">Kits Upgrade</a>
-        <a href="#instagram" class="mobile-nav-link">Instagram</a>
-        <a href="#contact" class="mobile-nav-link">Contacto</a>
+    <div class="mobile-menu" id="mobileMenu" aria-hidden="true">
+        <a href="#vehicles" class="mobile-nav-link" data-scroll="vehicles">
+            <i class="fas fa-car"></i> Vehículos
+        </a>
+        <a href="#customize" class="mobile-nav-link" data-scroll="customize">
+            <i class="fas fa-cog"></i> Kits Upgrade
+        </a>
+        <a href="#instagram" class="mobile-nav-link" data-scroll="instagram">
+            <i class="fab fa-instagram"></i> Instagram
+        </a>
+        <a href="#contact" class="mobile-nav-link" data-scroll="contact">
+            <i class="fas fa-envelope"></i> Contacto
+        </a>
+        <div class="mobile-menu-footer">
+            <a href="https://wa.me/56938654827" target="_blank" class="button button-small button-whatsapp">
+                <i class="fab fa-whatsapp"></i> WhatsApp
+            </a>
+        </div>
     </div>
 
     <!-- Hero Section -->
-    <section class="hero">
+    <section class="hero" id="hero">
         <div class="hero-content">
             <h1 class="hero-title">
                 <span class="hero-main">IAC ARICA</span>
+                <span class="hero-tagline">El desierto merece su leyenda.</span>
             </h1>
             
             <p class="hero-subtitle">
@@ -64,48 +142,62 @@
             
             <!-- Indicadores -->
             <div class="stock-indicators">
-                <div class="indicator">
+                <div class="indicator" data-filter="stock" role="button" tabindex="0" aria-label="Ver vehículos en stock">
+                    <div class="indicator-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="indicator-content">
+                        <div class="indicator-number" id="stockCount">0</div>
+                        <div class="indicator-label">En Stock Arica</div>
+                    </div>
+                </div>
+                
+                <div class="indicator" data-filter="transit" role="button" tabindex="0" aria-label="Ver vehículos en tránsito">
+                    <div class="indicator-icon">
+                        <i class="fas fa-shipping-fast"></i>
+                    </div>
+                    <div class="indicator-content">
+                        <div class="indicator-number" id="transitCount">0</div>
+                        <div class="indicator-label">En Tránsito</div>
+                    </div>
+                </div>
+                
+                <div class="indicator" data-filter="reserved" role="button" tabindex="0" aria-label="Ver vehículos para reservar">
+                    <div class="indicator-icon">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <div class="indicator-content">
+                        <div class="indicator-number" id="reservedCount">0</div>
+                        <div class="indicator-label">Para Reservar</div>
+                    </div>
+                </div>
+                
+                <div class="indicator" data-filter="all" role="button" tabindex="0" aria-label="Ver todos los vehículos">
                     <div class="indicator-icon">
                         <i class="fas fa-car"></i>
                     </div>
                     <div class="indicator-content">
-                        <div class="indicator-number">50+</div>
-                        <div class="indicator-label">Vehículos vendidos</div>
-                    </div>
-                </div>
-                
-                <div class="indicator">
-                    <div class="indicator-icon">
-                        <i class="fas fa-bolt"></i>
-                    </div>
-                    <div class="indicator-content">
-                        <div class="indicator-number">48h</div>
-                        <div class="indicator-label">Proyectos Rápidos</div>
-                    </div>
-                </div>
-                
-                <div class="indicator">
-                    <div class="indicator-icon">
-                        <i class="fas fa-tools"></i>
-                    </div>
-                    <div class="indicator-content">
-                        <div class="indicator-number">30+</div>
-                        <div class="indicator-label">Kits Personalización</div>
+                        <div class="indicator-number" id="totalCount">0</div>
+                        <div class="indicator-label">Total Vehículos</div>
                     </div>
                 </div>
             </div>
             
             <!-- Call to Action -->
             <div class="hero-cta">
-                <a href="#vehicles" class="btn-apple">
+                <a href="#vehicles" class="btn-apple" data-scroll="vehicles">
                     <i class="fas fa-chevron-down"></i>
-                    Ver Catálogo
+                    Ver Catálogo Completo
+                </a>
+                <a href="https://wa.me/56938654827" target="_blank" class="btn-apple btn-whatsapp">
+                    <i class="fab fa-whatsapp"></i>
+                    Contactar por WhatsApp
                 </a>
             </div>
         </div>
         
         <!-- Flecha explorar -->
-        <div class="explore-arrow" onclick="document.getElementById('vehicles').scrollIntoView({behavior: 'smooth'})">
+        <div class="explore-arrow" onclick="scrollToSection('vehicles')" role="button" tabindex="0" aria-label="Desplazarse a la sección de vehículos">
             <i class="fas fa-chevron-down"></i>
         </div>
     </section>
@@ -113,20 +205,77 @@
     <!-- Vehicles Section -->
     <section class="section vehicles-section" id="vehicles">
         <div class="container">
-            <h2 class="section-title">Vehículos Disponibles</h2>
-            <p class="section-subtitle">Selección premium de vehículos importados</p>
+            <div class="section-header">
+                <h2 class="section-title">Vehículos Disponibles</h2>
+                <p class="section-subtitle">Selección premium de vehículos americanos importados directamente desde USA</p>
+            </div>
             
             <div class="filter-controls">
-                <button class="filter-button active" data-filter="all">Todos</button>
-                <button class="filter-button" data-filter="stock">Stock Arica</button>
-                <button class="filter-button" data-filter="transit">En Tránsito</button>
-                <button class="filter-button" data-filter="reserved">Para Reservar</button>
+                <div class="filter-buttons">
+                    <button class="filter-button active" data-filter="all" aria-pressed="true">
+                        Todos <span id="filterCount" class="filter-count">(0)</span>
+                    </button>
+                    <button class="filter-button" data-filter="stock" aria-pressed="false">
+                        <i class="fas fa-check-circle"></i> Stock Arica
+                    </button>
+                    <button class="filter-button" data-filter="transit" aria-pressed="false">
+                        <i class="fas fa-shipping-fast"></i> En Tránsito
+                    </button>
+                    <button class="filter-button" data-filter="reserved" aria-pressed="false">
+                        <i class="fas fa-calendar-check"></i> Para Reservar
+                    </button>
+                </div>
+                
+                <div class="filter-advanced" id="advancedFilters" style="display: none;">
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label for="filterMarca" class="filter-label">Marca:</label>
+                            <select id="filterMarca" class="form-control">
+                                <option value="">Todas las marcas</option>
+                                <!-- Se llenará dinámicamente -->
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="filterPrecioMin" class="filter-label">Precio mínimo:</label>
+                            <input type="number" id="filterPrecioMin" class="form-control" placeholder="$">
+                        </div>
+                        <div class="filter-group">
+                            <label for="filterPrecioMax" class="filter-label">Precio máximo:</label>
+                            <input type="number" id="filterPrecioMax" class="form-control" placeholder="$">
+                        </div>
+                    </div>
+                    <div class="filter-actions">
+                        <button class="button button-small" id="applyFilters">
+                            <i class="fas fa-filter"></i> Aplicar Filtros
+                        </button>
+                        <button class="button button-small button-outline" id="clearFilters">
+                            <i class="fas fa-times"></i> Limpiar
+                        </button>
+                    </div>
+                </div>
+                
+                <button class="button button-small button-outline" id="toggleFilters">
+                    <i class="fas fa-sliders-h"></i> Más filtros
+                </button>
             </div>
             
             <div class="vehicles-grid" id="vehiclesContainer">
-                <div class="loading">
-                    <div class="loading-spinner"></div>
-                    <p class="loading-text">Cargando vehículos...</p>
+                <!-- Se cargará dinámicamente -->
+                <div class="loading-placeholder">
+                    <div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i></div>
+                    <p>Cargando vehículos...</p>
+                </div>
+            </div>
+            
+            <div class="section-footer" id="vehiclesFooter" style="display: none;">
+                <p class="text-center">
+                    <i class="fas fa-info-circle"></i>
+                    Mostrando <span id="vehiclesShown">0</span> de <span id="vehiclesTotal">0</span> vehículos
+                </p>
+                <div class="text-center mt-3">
+                    <button class="button button-outline" id="loadMoreVehicles">
+                        <i class="fas fa-plus"></i> Cargar más vehículos
+                    </button>
                 </div>
             </div>
         </div>
@@ -135,11 +284,14 @@
     <!-- Kits Section -->
     <section class="section kits-section" id="customize">
         <div class="container">
-            <h2 class="section-title">Kits Upgrade Personalizados</h2>
-            <p class="section-subtitle">Cada vehículo tiene kits de upgrade con precios específicos según modelo.</p>
+            <div class="section-header">
+                <h2 class="section-title">Kits Upgrade Personalizados</h2>
+                <p class="section-subtitle">Cada vehículo tiene kits de upgrade con precios específicos según modelo y características.</p>
+            </div>
             
-            <div class="kits-grid">
-                <div class="card kit-card">
+            <div class="kits-grid" id="kitsContainer">
+                <!-- Se cargará dinámicamente -->
+                <div class="kit-card">
                     <div class="kit-icon">
                         <i class="fas fa-star"></i>
                     </div>
@@ -150,10 +302,11 @@
                         <li><i class="fas fa-check"></i> Limpieza completa</li>
                         <li><i class="fas fa-check"></i> Revisión mecánica</li>
                         <li><i class="fas fa-check"></i> Documentación en regla</li>
+                        <li><i class="fas fa-check"></i> Garantía 30 días</li>
                     </ul>
                 </div>
                 
-                <div class="card kit-card">
+                <div class="kit-card featured">
                     <div class="kit-icon">
                         <i class="fas fa-medal"></i>
                     </div>
@@ -162,12 +315,14 @@
                     <div class="kit-price">DESDE $1.2M</div>
                     <ul class="kit-features">
                         <li><i class="fas fa-check"></i> Todo lo del Kit Standard</li>
-                        <li><i class="fas fa-check"></i> Llantas deportivas</li>
-                        <li><i class="fas fa-check"></i> Tratamiento de pintura</li>
+                        <li><i class="fas fa-check"></i> Llantas deportivas 20"</li>
+                        <li><i class="fas fa-check"></i> Tratamiento cerámico</li>
+                        <li><i class="fas fa-check"></i> Audio premium</li>
+                        <li><i class="fas fa-check"></i> Asistencia 6 meses</li>
                     </ul>
                 </div>
                 
-                <div class="card kit-card">
+                <div class="kit-card">
                     <div class="kit-icon">
                         <i class="fas fa-crown"></i>
                     </div>
@@ -177,19 +332,26 @@
                     <ul class="kit-features">
                         <li><i class="fas fa-check"></i> Todo lo del Kit Medium</li>
                         <li><i class="fas fa-check"></i> Suspensión deportiva</li>
-                        <li><i class="fas fa-check"></i> Kit de carrocería exclusivo</li>
+                        <li><i class="fas fa-check"></i> Kit de carrocería</li>
+                        <li><i class="fas fa-check"></i> Interior cuero premium</li>
+                        <li><i class="fas fa-check"></i> Asistencia 12 meses</li>
                     </ul>
                 </div>
             </div>
             
             <p class="kit-disclaimer">
-                * Los kits varían por modelo. Puedes personalizar y cotizar el kit exacto al seleccionar un vehículo.
+                <i class="fas fa-exclamation-circle"></i>
+                Los kits varían según el modelo del vehículo. Puedes personalizar y cotizar el kit exacto al seleccionar un vehículo específico.
+                Los precios son referenciales y sujetos a confirmación.
             </p>
             
             <div class="text-center">
                 <button class="button button-large" id="showAllKits">
-                    <i class="fas fa-cog"></i> Ver Kits por Vehículo
+                    <i class="fas fa-cog"></i> Ver Kits Personalizados por Vehículo
                 </button>
+                <p class="mt-2 text-sm text-gray-600">
+                    Selecciona un vehículo primero para ver los kits disponibles específicos
+                </p>
             </div>
         </div>
     </section>
@@ -197,19 +359,89 @@
     <!-- Instagram Section -->
     <section class="section instagram-section" id="instagram">
         <div class="container">
-            <h2 class="section-title">En Instagram</h2>
-            <p class="section-subtitle">Sigue nuestro proceso de importación, vehículos en stock y transformaciones con kits upgrade</p>
+            <div class="section-header">
+                <h2 class="section-title">En Instagram</h2>
+                <p class="section-subtitle">Sigue nuestro proceso de importación, vehículos en stock y transformaciones con kits upgrade</p>
+            </div>
             
             <div class="instagram-feed" id="instagramFeed">
-                <!-- Se cargará dinámicamente -->
+                <!-- Placeholder para posts de Instagram -->
+                <div class="instagram-post">
+                    <div class="instagram-image-placeholder">
+                        <i class="fab fa-instagram"></i>
+                    </div>
+                    <div class="instagram-info">
+                        <div class="instagram-stats">
+                            <span class="instagram-stat">
+                                <i class="fas fa-heart"></i> 245
+                            </span>
+                            <span class="instagram-stat">
+                                <i class="fas fa-comment"></i> 32
+                            </span>
+                        </div>
+                        <p class="instagram-caption">
+                            Última importación: Ford F-150 Raptor lista para entrega.
+                            Kit Full Upgrade aplicado.
+                        </p>
+                        <div class="instagram-hashtags">
+                            #ImportAmericanCars #FordRaptor #KitFull
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="instagram-post">
+                    <div class="instagram-image-placeholder">
+                        <i class="fab fa-instagram"></i>
+                    </div>
+                    <div class="instagram-info">
+                        <div class="instagram-stats">
+                            <span class="instagram-stat">
+                                <i class="fas fa-heart"></i> 189
+                            </span>
+                            <span class="instagram-stat">
+                                <i class="fas fa-comment"></i> 24
+                            </span>
+                        </div>
+                        <p class="instagram-caption">
+                            Chevrolet Silverado 2023 en proceso de preparación.
+                            Kit Medium aplicado con llantas nuevas.
+                        </p>
+                        <div class="instagram-hashtags">
+                            #Chevrolet #Silverado #KitMedium
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="instagram-post">
+                    <div class="instagram-image-placeholder">
+                        <i class="fab fa-instagram"></i>
+                    </div>
+                    <div class="instagram-info">
+                        <div class="instagram-stats">
+                            <span class="instagram-stat">
+                                <i class="fas fa-heart"></i> 312
+                            </span>
+                            <span class="instagram-stat">
+                                <i class="fas fa-comment"></i> 45
+                            </span>
+                        </div>
+                        <p class="instagram-caption">
+                            RAM 1500 Limited lista para el desierto.
+                            Transformación completa con todos los upgrades.
+                        </p>
+                        <div class="instagram-hashtags">
+                            #RAM1500 #DesiertoArica #OffRoad
+                        </div>
+                    </div>
+                </div>
             </div>
             
             <div class="instagram-cta">
                 <a href="https://www.instagram.com/import_american_cars" target="_blank" class="button button-instagram button-large">
-                    <i class="fab fa-instagram"></i> @import_american_cars
+                    <i class="fab fa-instagram"></i> Seguir en Instagram: @import_american_cars
                 </a>
                 <p class="instagram-hashtags">
-                    #ImportAmericanCarsArica • #VehículosUSA • #KitsUpgrade
+                    #ImportAmericanCarsArica • #VehículosUSA • #KitsUpgrade • #Arica • #Desierto
                 </p>
             </div>
         </div>
@@ -218,8 +450,10 @@
     <!-- Contact Section -->
     <section class="section contact-section" id="contact">
         <div class="container">
-            <h2 class="section-title">Contacto</h2>
-            <p class="section-subtitle">Contáctanos para encontrar el vehículo americano de tus sueños</p>
+            <div class="section-header">
+                <h2 class="section-title">Contacto</h2>
+                <p class="section-subtitle">Contáctanos para encontrar el vehículo americano de tus sueños</p>
+            </div>
             
             <div class="contact-buttons">
                 <a href="https://wa.me/56938654827" target="_blank" class="button button-whatsapp button-large">
@@ -235,8 +469,17 @@
             
             <div class="contact-info">
                 <p><i class="fas fa-map-marker-alt"></i> Zona Franca Arica, Chile</p>
-                <p><i class="fas fa-phone-alt"></i> +56 9 8145 8545</p>
+                <p><i class="fas fa-phone-alt"></i> +56 9 3865 4827</p>
                 <p><i class="fas fa-clock"></i> Lunes a Viernes 9:00 - 19:00</p>
+                <p><i class="fas fa-envelope"></i> contacto@importamericancars.cl</p>
+            </div>
+            
+            <div class="contact-map" id="contactMap">
+                <!-- Mapa placeholder -->
+                <div class="map-placeholder">
+                    <i class="fas fa-map-marked-alt"></i>
+                    <p>Zona Franca Arica, Región de Arica y Parinacota</p>
+                </div>
             </div>
         </div>
     </section>
@@ -252,8 +495,10 @@
             </div>
             
             <div class="footer-info">
-                <p>Importamos los vehículos americanos más icónicos</p>
-                <p>Arica, Chile</p>
+                <p><i class="fas fa-car"></i> Importamos los vehículos americanos más icónicos</p>
+                <p><i class="fas fa-map-marker-alt"></i> Arica, Chile</p>
+                <p><i class="fas fa-phone"></i> +56 9 3865 4827</p>
+                <p><i class="fas fa-envelope"></i> contacto@importamericancars.cl</p>
             </div>
             
             <div class="footer-links">
@@ -261,20 +506,35 @@
                 <a href="#customize" class="footer-link">Kits Upgrade</a>
                 <a href="#instagram" class="footer-link">Instagram</a>
                 <a href="#contact" class="footer-link">Contacto</a>
+                <a href="#" class="footer-link" id="privacyPolicy">Política de Privacidad</a>
+                <a href="#" class="footer-link" id="termsService">Términos de Servicio</a>
+            </div>
+            
+            <div class="footer-social">
+                <a href="https://wa.me/56938654827" target="_blank" class="social-icon social-whatsapp" aria-label="WhatsApp">
+                    <i class="fab fa-whatsapp"></i>
+                </a>
+                <a href="https://www.instagram.com/import_american_cars" target="_blank" class="social-icon social-instagram" aria-label="Instagram">
+                    <i class="fab fa-instagram"></i>
+                </a>
+                <a href="mailto:contacto@importamericancars.cl" class="social-icon social-email" aria-label="Email">
+                    <i class="fas fa-envelope"></i>
+                </a>
             </div>
             
             <div class="footer-bottom">
-                <p>&copy; <span id="currentYear">2025</span> Import American Cars. Todos los derechos reservados.</p>
+                <p>&copy; <span id="currentYear">2025</span> Import American Cars Arica. Todos los derechos reservados.</p>
+                <p class="footer-version">v2.0.0</p>
             </div>
         </div>
     </footer>
 
     <!-- Modales -->
-    <div class="modal" id="vehicleModal">
+    <div class="modal" id="vehicleModal" role="dialog" aria-modal="true" aria-labelledby="vehicleModalTitle" aria-hidden="true">
         <div class="modal-content">
-            <button class="close-modal" id="closeVehicleModal" aria-label="Cerrar">×</button>
+            <button class="close-modal" id="closeVehicleModal" aria-label="Cerrar modal">×</button>
             <div class="modal-header">
-                <h2>Detalles del Vehículo</h2>
+                <h2 id="vehicleModalTitle">Detalles del Vehículo</h2>
             </div>
             <div class="modal-body" id="vehicleModalContent">
                 <!-- Contenido dinámico -->
@@ -282,11 +542,11 @@
         </div>
     </div>
 
-    <div class="modal" id="customizationModal">
+    <div class="modal" id="customizationModal" role="dialog" aria-modal="true" aria-labelledby="customizationModalTitle" aria-hidden="true">
         <div class="modal-content">
-            <button class="close-modal" id="closeCustomizationModal" aria-label="Cerrar">×</button>
+            <button class="close-modal" id="closeCustomizationModal" aria-label="Cerrar modal">×</button>
             <div class="modal-header">
-                <h2>Personalización</h2>
+                <h2 id="customizationModalTitle">Personalización</h2>
             </div>
             <div class="modal-body" id="customizationContent">
                 <!-- Contenido dinámico -->
@@ -295,12 +555,431 @@
     </div>
 
     <!-- Notifications Container -->
-    <div id="notificationContainer"></div>
+    <div id="notificationContainer" aria-live="polite" aria-atomic="true"></div>
 
     <!-- JavaScript -->
     <script type="module">
-        // Tu código JavaScript existente aquí
-        // Solo cambiar las referencias a las clases CSS si es necesario
+        // Configuración global
+        import { CONFIG } from './config.js';
+        import { UIManager } from './ui-manager.js';
+        import { ProductosManager } from './productos-manager.js';
+        
+        // Variables globales
+        let productosManager;
+        let currentPage = 1;
+        const vehiclesPerPage = 12;
+        
+        // Inicializar aplicación
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log('🚀 Iniciando aplicación...');
+            
+            // Ocultar loading overlay
+            setTimeout(() => {
+                const loadingOverlay = document.getElementById('loadingOverlay');
+                if (loadingOverlay) {
+                    loadingOverlay.classList.add('fade-out');
+                    setTimeout(() => loadingOverlay.remove(), 500);
+                }
+            }, 1000);
+            
+            try {
+                // Inicializar UI Manager
+                await UIManager.init({
+                    autoInitSlider: true
+                });
+                
+                // Inicializar Productos Manager
+                productosManager = new ProductosManager(CONFIG);
+                window.productosManager = productosManager;
+                
+                // Configurar año actual
+                document.getElementById('currentYear').textContent = new Date().getFullYear();
+                
+                // Configurar eventos
+                setupEventListeners();
+                
+                // Cargar datos iniciales
+                await loadInitialData();
+                
+                // Inicializar scroll suave
+                initSmoothScroll();
+                
+                // Inicializar búsqueda y filtros
+                initSearchAndFilters();
+                
+                console.log('✅ Aplicación inicializada correctamente');
+                
+                // Seguimiento de página
+                UIManager.trackPageView('home');
+                
+            } catch (error) {
+                console.error('❌ Error inicializando aplicación:', error);
+                UINotifications.error('Error al inicializar la aplicación');
+            }
+        });
+        
+        // Configurar event listeners
+        function setupEventListeners() {
+            // Menú móvil
+            document.getElementById('menuToggle')?.addEventListener('click', toggleMobileMenu);
+            
+            // Filtros
+            document.querySelectorAll('.filter-button').forEach(btn => {
+                btn.addEventListener('click', handleFilterClick);
+            });
+            
+            // Indicadores del hero
+            document.querySelectorAll('.indicator').forEach(indicator => {
+                indicator.addEventListener('click', handleIndicatorClick);
+                indicator.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        handleIndicatorClick(e);
+                    }
+                });
+            });
+            
+            // Botón mostrar todos los kits
+            document.getElementById('showAllKits')?.addEventListener('click', handleShowAllKits);
+            
+            // Botón más filtros
+            document.getElementById('toggleFilters')?.addEventListener('click', toggleAdvancedFilters);
+            
+            // Aplicar filtros avanzados
+            document.getElementById('applyFilters')?.addEventListener('click', applyAdvancedFilters);
+            document.getElementById('clearFilters')?.addEventListener('click', clearAdvancedFilters);
+            
+            // Botón cargar más vehículos
+            document.getElementById('loadMoreVehicles')?.addEventListener('click', loadMoreVehicles);
+            
+            // Políticas y términos
+            document.getElementById('privacyPolicy')?.addEventListener('click', showPrivacyPolicy);
+            document.getElementById('termsService')?.addEventListener('click', showTermsOfService);
+            
+            // Enlaces de scroll suave
+            document.querySelectorAll('[data-scroll]').forEach(link => {
+                link.addEventListener('click', handleSmoothScroll);
+            });
+            
+            // Recargar datos periódicamente (cada 5 minutos)
+            setInterval(() => {
+                productosManager?.refreshData();
+            }, 5 * 60 * 1000);
+            
+            // Detectar cambios en conexión
+            window.addEventListener('online', handleOnlineStatus);
+            window.addEventListener('offline', handleOfflineStatus);
+        }
+        
+        // Cargar datos iniciales
+        async function loadInitialData() {
+            try {
+                // Cargar vehículos
+                await productosManager.cargarVehiculos();
+                
+                // Cargar marcas para filtros
+                loadBrandsFilter();
+                
+                // Actualizar UI
+                updateVehiclesCount();
+                
+            } catch (error) {
+                console.error('❌ Error cargando datos iniciales:', error);
+            }
+        }
+        
+        // Manejar clicks en filtros
+        function handleFilterClick(e) {
+            const filter = e.currentTarget.dataset.filter;
+            if (filter && productosManager) {
+                productosManager.filtrarVehiculos(filter);
+                
+                // Scroll a la sección de vehículos
+                scrollToSection('vehicles');
+            }
+        }
+        
+        // Manejar clicks en indicadores
+        function handleIndicatorClick(e) {
+            const filter = e.currentTarget.dataset.filter;
+            if (filter && productosManager) {
+                productosManager.filtrarVehiculos(filter);
+                scrollToSection('vehicles');
+            }
+        }
+        
+        // Manejar mostrar todos los kits
+        function handleShowAllKits() {
+            const firstVehicle = productosManager?.vehiculos[0];
+            if (firstVehicle) {
+                UIManager.customizeVehicle(firstVehicle.id);
+            } else {
+                UINotifications.info('Primero carga los vehículos para ver los kits disponibles');
+            }
+        }
+        
+        // Toggle menú móvil
+        function toggleMobileMenu() {
+            const mobileMenu = document.getElementById('mobileMenu');
+            const menuToggle = document.getElementById('menuToggle');
+            
+            if (mobileMenu && menuToggle) {
+                const isExpanded = menuToggle.getAttribute('aria-expanded') === 'true';
+                
+                mobileMenu.classList.toggle('active');
+                menuToggle.classList.toggle('active');
+                menuToggle.setAttribute('aria-expanded', !isExpanded);
+                mobileMenu.setAttribute('aria-hidden', isExpanded);
+                
+                // Cambiar icono
+                const icon = menuToggle.querySelector('i');
+                if (icon) {
+                    icon.className = isExpanded ? 'fas fa-bars' : 'fas fa-times';
+                }
+            }
+        }
+        
+        // Inicializar scroll suave
+        function initSmoothScroll() {
+            // Configurar offset para header fijo
+            const headerHeight = document.querySelector('.header')?.offsetHeight || 80;
+            
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function(e) {
+                    const targetId = this.getAttribute('href');
+                    if (targetId === '#') return;
+                    
+                    const targetElement = document.querySelector(targetId);
+                    if (targetElement) {
+                        e.preventDefault();
+                        
+                        const targetPosition = targetElement.offsetTop - headerHeight;
+                        window.scrollTo({
+                            top: targetPosition,
+                            behavior: 'smooth'
+                        });
+                        
+                        // Cerrar menú móvil si está abierto
+                        const mobileMenu = document.getElementById('mobileMenu');
+                        if (mobileMenu?.classList.contains('active')) {
+                            toggleMobileMenu();
+                        }
+                    }
+                });
+            });
+        }
+        
+        // Manejar scroll suave para enlaces con data-scroll
+        function handleSmoothScroll(e) {
+            e.preventDefault();
+            const targetId = this.getAttribute('href');
+            scrollToSection(targetId.replace('#', ''));
+            
+            // Cerrar menú móvil si está abierto
+            const mobileMenu = document.getElementById('mobileMenu');
+            if (mobileMenu?.classList.contains('active')) {
+                toggleMobileMenu();
+            }
+        }
+        
+        // Función helper para scroll a sección
+        function scrollToSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            if (section) {
+                const headerHeight = document.querySelector('.header')?.offsetHeight || 80;
+                const sectionPosition = section.offsetTop - headerHeight;
+                
+                window.scrollTo({
+                    top: sectionPosition,
+                    behavior: 'smooth'
+                });
+            }
+        }
+        
+        // Inicializar búsqueda y filtros
+        function initSearchAndFilters() {
+            // Búsqueda en tiempo real (con debounce)
+            let searchTimeout;
+            const searchInput = document.getElementById('searchInput');
+            
+            if (searchInput) {
+                searchInput.addEventListener('input', (e) => {
+                    clearTimeout(searchTimeout);
+                    searchTimeout = setTimeout(() => {
+                        const query = e.target.value.trim();
+                        if (query.length >= 2 || query.length === 0) {
+                            productosManager?.buscarVehiculos(query);
+                        }
+                    }, 300);
+                });
+            }
+        }
+        
+        // Toggle filtros avanzados
+        function toggleAdvancedFilters() {
+            const advancedFilters = document.getElementById('advancedFilters');
+            const toggleButton = document.getElementById('toggleFilters');
+            
+            if (advancedFilters && toggleButton) {
+                const isVisible = advancedFilters.style.display !== 'none';
+                
+                advancedFilters.style.display = isVisible ? 'none' : 'block';
+                toggleButton.innerHTML = isVisible ? 
+                    '<i class="fas fa-sliders-h"></i> Más filtros' : 
+                    '<i class="fas fa-times"></i> Menos filtros';
+                
+                // Ajustar aria-expanded
+                toggleButton.setAttribute('aria-expanded', !isVisible);
+            }
+        }
+        
+        // Aplicar filtros avanzados
+        function applyAdvancedFilters() {
+            const marca = document.getElementById('filterMarca')?.value;
+            const precioMin = document.getElementById('filterPrecioMin')?.value;
+            const precioMax = document.getElementById('filterPrecioMax')?.value;
+            
+            const filters = {};
+            
+            if (marca) filters.marca = marca;
+            if (precioMin) filters.minPrecio = parseInt(precioMin);
+            if (precioMax) filters.maxPrecio = parseInt(precioMax);
+            
+            if (Object.keys(filters).length > 0) {
+                productosManager?.aplicarFiltros(filters);
+            }
+        }
+        
+        // Limpiar filtros avanzados
+        function clearAdvancedFilters() {
+            document.getElementById('filterMarca').value = '';
+            document.getElementById('filterPrecioMin').value = '';
+            document.getElementById('filterPrecioMax').value = '';
+            
+            productosManager?.aplicarFiltros({
+                marca: null,
+                minPrecio: null,
+                maxPrecio: null
+            });
+        }
+        
+        // Cargar marcas en filtro
+        function loadBrandsFilter() {
+            const select = document.getElementById('filterMarca');
+            if (!select || !productosManager) return;
+            
+            const marcas = productosManager.getMarcasDisponibles();
+            
+            // Limpiar opciones excepto la primera
+            while (select.options.length > 1) {
+                select.remove(1);
+            }
+            
+            // Agregar marcas
+            marcas.forEach(marca => {
+                const option = document.createElement('option');
+                option.value = marca;
+                option.textContent = marca;
+                select.appendChild(option);
+            });
+        }
+        
+        // Cargar más vehículos (paginación)
+        function loadMoreVehicles() {
+            currentPage++;
+            updateVehiclesCount();
+            // Aquí iría la lógica de paginación si se implementa
+        }
+        
+        // Actualizar contadores de vehículos
+        function updateVehiclesCount() {
+            const vehiclesShown = document.getElementById('vehiclesShown');
+            const vehiclesTotal = document.getElementById('vehiclesTotal');
+            const vehiclesFooter = document.getElementById('vehiclesFooter');
+            
+            if (vehiclesShown && vehiclesTotal && productosManager) {
+                const filteredCount = productosManager.getVehiculosFiltrados().length;
+                const totalCount = productosManager.vehiculos.length;
+                
+                vehiclesShown.textContent = filteredCount;
+                vehiclesTotal.textContent = totalCount;
+                
+                // Mostrar footer solo si hay más vehículos
+                if (vehiclesFooter) {
+                    vehiclesFooter.style.display = 'block';
+                }
+            }
+        }
+        
+        // Mostrar política de privacidad
+        function showPrivacyPolicy(e) {
+            e.preventDefault();
+            UINotifications.info('Política de privacidad - En desarrollo', 3000);
+            // Aquí se abriría un modal con la política
+        }
+        
+        // Mostrar términos de servicio
+        function showTermsOfService(e) {
+            e.preventDefault();
+            UINotifications.info('Términos de servicio - En desarrollo', 3000);
+            // Aquí se abriría un modal con los términos
+        }
+        
+        // Manejar cambio a online
+        function handleOnlineStatus() {
+            UINotifications.success('Conectado a internet', 2000);
+            
+            // Recargar datos si es necesario
+            const lastUpdate = productosManager?.getUltimaActualizacion();
+            if (lastUpdate && Date.now() - lastUpdate.timestamp > 5 * 60 * 1000) {
+                productosManager?.refreshData();
+            }
+        }
+        
+        // Manejar cambio a offline
+        function handleOfflineStatus() {
+            UINotifications.warning('Sin conexión a internet', 5000);
+        }
+        
+        // Exponer funciones globales
+        window.scrollToSection = scrollToSection;
+        window.toggleMobileMenu = toggleMobileMenu;
+        
+        // Handler para errores no capturados
+        window.addEventListener('error', function(e) {
+            console.error('❌ Error no capturado:', e.error);
+            UINotifications.error('Ocurrió un error inesperado');
+        });
+        
+        // Handler para promesas no capturadas
+        window.addEventListener('unhandledrejection', function(e) {
+            console.error('❌ Promesa no capturada:', e.reason);
+            UINotifications.error('Error en operación asíncrona');
+        });
+    </script>
+    
+    <!-- Analytics (opcional) -->
+    <script>
+        // Google Analytics
+        if (CONFIG.app.analytics.googleAnalyticsId) {
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', CONFIG.app.analytics.googleAnalyticsId);
+        }
+        
+        // Facebook Pixel
+        if (CONFIG.app.analytics.facebookPixelId) {
+            !function(f,b,e,v,n,t,s)
+            {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+            n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+            if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+            n.queue=[];t=b.createElement(e);t.async=!0;
+            t.src=v;s=b.getElementsByTagName(e)[0];
+            s.parentNode.insertBefore(t,s)}(window, document,'script',
+            'https://connect.facebook.net/en_US/fbevents.js');
+            fbq('init', CONFIG.app.analytics.facebookPixelId);
+            fbq('track', 'PageView');
+        }
     </script>
 </body>
 </html>
