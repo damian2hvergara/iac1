@@ -258,7 +258,7 @@ class SupabaseService {
       nombre: vehiculo.nombre || vehiculo.titulo || 'Vehículo',
       descripcion: vehiculo.descripcion || vehiculo.detalles || 'Vehículo americano importado',
       precio: vehiculo.precio || vehiculo.valor || 0,
-      estado: estado,
+      estado: estado,  // 'stock', 'transit', 'reserved'
       estadoTexto: estadoConfig.texto,
       estadoColor: estadoConfig.color,
       estadoIcono: estadoConfig.icono,
