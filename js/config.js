@@ -1,9 +1,10 @@
-// config.js - CONFIGURACIÓN COMPLETA
+// config.js - CONFIGURACIÓN FINAL CORRECTA
 const CONFIG = {
   supabase: {
     url: "https://cflpmluvhfldewiitymh.supabase.co",
-    anonKey: "sb_publishable_lvUG-G_2bzDxyVZwAF25HA_30dFAb3K"
-    tabla: "vehiculos_publicos"
+    anonKey: "sb_publishable_lvUG-G_2bzDxyVZwAF25HA_30dFAb3K", // TU PUBLISHABLE KEY
+    serviceKey: "sb_secret_su3AIpWkxPUYW1HLzT1NOw_ssNlHwwT", // TU SECRET KEY
+    table: "vehiculos_publicos" // NOMBRE EXACTO DE TU TABLA
   },
   
   contacto: {
