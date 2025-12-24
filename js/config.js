@@ -1,10 +1,10 @@
-// config.js - CONFIGURACIÓN FINAL CORRECTA
+// config.js - CONFIGURACIÓN COMPLETA SIN PALABRAS RESERVADAS
 const CONFIG = {
   supabase: {
     url: "https://cflpmluvhfldewiitymh.supabase.co",
-    anonKey: "sb_publishable_lvUG-G_2bzDxyVZwAF25HA_30dFAb3K", // TU PUBLISHABLE KEY
-    serviceKey: "sb_secret_su3AIpWkxPUYW1HLzT1NOw_ssNlHwwT", // TU SECRET KEY
-    table: "vehiculos_publicos" // NOMBRE EXACTO DE TU TABLA
+    anonKey: "sb_publishable_lvUG-G_2bzDxyVZwAF25HA_30dFAb3K",
+    serviceKey: "sb_secret_su3AIpWkxPUYW1HLzT1NOw_ssNlHwwT",
+    tabla: "vehiculos_publicos"
   },
   
   contacto: {
@@ -17,7 +17,7 @@ const CONFIG = {
   
   app: {
     nombre: "Import American Cars Arica",
-    defaultImage: "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+    imagenPorDefecto: "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
     
     estados: {
       stock: {
@@ -37,7 +37,7 @@ const CONFIG = {
       }
     },
     
-    kitsDefault: [
+    kitsPorDefecto: [
       {
         id: "standard",
         nombre: "Standard",
@@ -45,7 +45,7 @@ const CONFIG = {
         descripcion: "Preparación básica incluida",
         color: "#CD7F32",
         icon: "fa-star",
-        includes: ["Limpieza completa", "Revisión mecánica", "Documentación", "Garantía 30 días"]
+        incluye: ["Limpieza completa", "Revisión mecánica", "Documentación", "Garantía 30 días"]
       },
       {
         id: "medium",
@@ -54,7 +54,7 @@ const CONFIG = {
         descripcion: "Mejoras estéticas avanzadas",
         color: "#C0C0C0",
         icon: "fa-medal",
-        includes: ["Llantas 20\"", "Tratamiento cerámico", "Audio premium", "Asistencia 6 meses"]
+        incluye: ["Llantas 20\"", "Tratamiento cerámico", "Audio premium", "Asistencia 6 meses"]
       },
       {
         id: "full",
@@ -63,7 +63,7 @@ const CONFIG = {
         descripcion: "Transformación premium completa",
         color: "#FFD700",
         icon: "fa-crown",
-        includes: ["Suspensión deportiva", "Kit carrocería", "Interior cuero", "Asistencia 12 meses"]
+        incluye: ["Suspensión deportiva", "Kit carrocería", "Interior cuero", "Asistencia 12 meses"]
       }
     ]
   },
@@ -75,10 +75,10 @@ const CONFIG = {
     }
   },
   
-  storageKeys: {
+  clavesAlmacenamiento: {
     vehiculos: "iac_vehiculos_cache",
     kits: "iac_kits_cache",
-    userPreferences: "iac_user_prefs"
+    preferenciasUsuario: "iac_user_prefs"
   }
 };
 
