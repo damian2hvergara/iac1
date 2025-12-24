@@ -1,4 +1,4 @@
-// productos-manager.js - VERSIÓN CORREGIDA
+// productos-manager.js - VERSIÓN COMPLETA CORREGIDA
 
 // ===================== PRODUCTOS MANAGER =====================
 class ProductosManager {
@@ -100,38 +100,51 @@ class ProductosManager {
     if (filter !== 'all') {
       let estadoInventario;
       switch(filter) {
-        case 'stock': estadoInventario = 'disponible'; break;
-        case 'transit': estadoInventario = 'transito'; break;
-        case 'reserved': estadoInventario = 'reservado'; break;
+        case 'stock': estadoInventario = 'stock'; break;
+        case 'transit': estadoInventario = 'transit'; break;
+        case 'reserved': estadoInventario = 'reserved'; break;
         default: estadoInventario = filter;
       }
       
       vehiculosFiltrados = this.vehiculos.filter(v => 
-        v.estado_inventario === estadoInventario
+        v.estado === estadoInventario
       );
     }
     
     this.renderVehiculos(vehiculosFiltrados);
     this.actualizarBotonesFiltro(filter);
+    
+    // Actualizar contador del filtro
+    const filterCount = document.getElementById('filterCount');
+    if (filterCount) {
+      filterCount.textContent = vehiculosFiltrados.length;
+    }
   }
   
   actualizarEstadisticas() {
     this.stats = {
       total: this.vehiculos.length,
-      stock: this.vehiculos.filter(v => v.estado_inventario === 'disponible').length,
-      transit: this.vehiculos.filter(v => v.estado_inventario === 'transito').length,
-      reserved: this.vehiculos.filter(v => v.estado_inventario === 'reservado').length
+      stock: this.vehiculos.filter(v => v.estado === 'stock').length,
+      transit: this.vehiculos.filter(v => v.estado === 'transit').length,
+      reserved: this.vehiculos.filter(v => v.estado === 'reserved').length
     };
   }
   
   actualizarContadoresUI() {
-    const ids = ['stockCount', 'transitCount', 'reservedCount', 'totalCount'];
-    const values = [this.stats.stock, this.stats.transit, this.stats.reserved, this.stats.total];
+    // Actualizar contadores principales
+    const ids = ['totalCount', 'stockCount', 'transitCount', 'reservedCount'];
+    const values = [this.stats.total, this.stats.stock, this.stats.transit, this.stats.reserved];
     
     ids.forEach((id, index) => {
       const element = document.getElementById(id);
       if (element) element.textContent = values[index];
     });
+    
+    // Actualizar contador del filtro "Todos"
+    const filterCount = document.getElementById('filterCount');
+    if (filterCount) {
+      filterCount.textContent = this.stats.total;
+    }
   }
   
   actualizarBotonesFiltro(activeFilter) {
@@ -158,38 +171,40 @@ class ProductosManager {
   getVehicleCardHTML(vehiculo) {
     const imagen = vehiculo.imagenes?.[0] || vehiculo.imagen_principal || this.config.app.defaultImage;
     const precio = this.formatPrice(vehiculo.precio);
+    const estadoColor = this.getEstadoColor(vehiculo.estado);
+    const estadoTexto = this.getEstadoTexto(vehiculo.estado);
     
     return `
-      <div class="vehicle-card" data-vehicle-id="${vehiculo.id}">
+      <div class="card vehicle-card" data-vehicle-id="${vehiculo.id}">
         <div class="card-image-container">
           <img src="${imagen}" 
                alt="${vehiculo.nombre}" 
-               class="vehicle-image"
+               class="card-image vehicle-image"
                loading="lazy"
                onerror="this.src='${this.config.app.defaultImage}'">
-          <div class="vehicle-status" style="background: ${vehiculo.estadoColor}10; color: ${vehiculo.estadoColor}">
-            <i class="fas ${vehiculo.estadoIcono}"></i>
-            ${vehiculo.estadoTexto}
+          <div class="vehicle-status" style="background: ${estadoColor}10; color: ${estadoColor}; border-color: ${estadoColor}20;">
+            <i class="fas ${vehiculo.estadoIcono || 'fa-circle'}"></i>
+            ${estadoTexto}
           </div>
         </div>
         
-        <div class="vehicle-info">
-          <h3 class="vehicle-name">${vehiculo.nombre}</h3>
+        <div class="card-content">
+          <h3 class="card-title vehicle-name">${vehiculo.nombre}</h3>
           
-          <p class="vehicle-subtitle">
-            ${vehiculo.marca ? `<span>${vehiculo.marca}</span>` : ''}
-            ${vehiculo.modelo ? `<span>• ${vehiculo.modelo}</span>` : ''}
-          </p>
+          <div class="vehicle-subtitle mb-3">
+            ${vehiculo.marca ? `<span class="tag">${vehiculo.marca}</span>` : ''}
+            ${vehiculo.modelo ? `<span class="tag">${vehiculo.modelo}</span>` : ''}
+          </div>
           
-          <div class="vehicle-price">${precio}</div>
+          <div class="vehicle-price mb-3">${precio}</div>
           
-          <div class="vehicle-specs">
+          <div class="vehicle-specs mb-4">
             ${vehiculo.ano ? `<div class="vehicle-spec"><i class="fas fa-calendar"></i> ${vehiculo.ano}</div>` : ''}
             ${vehiculo.kilometraje ? `<div class="vehicle-spec"><i class="fas fa-road"></i> ${this.formatNumber(vehiculo.kilometraje)} km</div>` : ''}
             ${vehiculo.motor ? `<div class="vehicle-spec"><i class="fas fa-cogs"></i> ${vehiculo.motor}</div>` : ''}
           </div>
           
-          <div class="vehicle-actions">
+          <div class="vehicle-actions mt-auto">
             <button class="button button-small button-whatsapp" 
                     onclick="event.stopPropagation(); window.UIManager?.contactVehicle('${vehiculo.id}')">
               <i class="fab fa-whatsapp"></i> Consultar
@@ -228,7 +243,7 @@ class ProductosManager {
     let mensaje = `Hola, estoy interesado en:\n\n`;
     mensaje += `*${vehiculo.nombre}*\n`;
     mensaje += `💰 *Precio:* ${this.formatPrice(vehiculo.precio)}\n`;
-    mensaje += `📋 *Disponibilidad:* ${vehiculo.estadoTexto}\n`;
+    mensaje += `📋 *Disponibilidad:* ${this.getEstadoTexto(vehiculo.estado)}\n`;
     
     if (vehiculo.ano) mensaje += `📅 *Año:* ${vehiculo.ano}\n`;
     if (vehiculo.kilometraje) mensaje += `🛣️ *Kilometraje:* ${this.formatNumber(vehiculo.kilometraje)} km\n`;
@@ -243,6 +258,7 @@ class ProductosManager {
     return `${this.config.urls.social.whatsapp}?text=${encodeURIComponent(mensaje)}`;
   }
   
+  // Métodos de utilidad
   formatPrice(price) {
     if (!price && price !== 0) return 'Consultar';
     const num = parseInt(price);
@@ -251,18 +267,32 @@ class ProductosManager {
   }
   
   formatNumber(num) {
+    if (!num) return '0';
     return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
   }
   
+  getEstadoColor(estado) {
+    const estados = this.config.app.estados;
+    const estadoKey = estado?.toLowerCase() || 'stock';
+    return estados[estadoKey]?.color || estados.stock.color;
+  }
+  
+  getEstadoTexto(estado) {
+    const estados = this.config.app.estados;
+    const estadoKey = estado?.toLowerCase() || 'stock';
+    return estados[estadoKey]?.texto || estados.stock.texto;
+  }
+  
+  // Métodos de UI
   mostrarLoading() {
     const container = document.getElementById('vehiclesContainer');
     if (container) {
       container.innerHTML = `
-        <div class="loading-placeholder">
+        <div class="loading-placeholder" style="grid-column: 1 / -1;">
           <div class="loading-spinner">
             <i class="fas fa-spinner fa-spin"></i>
           </div>
-          <p>Cargando vehículos...</p>
+          <p class="loading-text">Cargando vehículos...</p>
         </div>
       `;
     }
@@ -274,7 +304,7 @@ class ProductosManager {
   
   getEmptyStateHTML() {
     return `
-      <div class="empty-state">
+      <div class="empty-state" style="grid-column: 1 / -1;">
         <div class="empty-state-icon">
           <i class="fas fa-car"></i>
         </div>
@@ -295,7 +325,7 @@ class ProductosManager {
     const container = document.getElementById('vehiclesContainer');
     if (container) {
       container.innerHTML = `
-        <div class="empty-state">
+        <div class="empty-state" style="grid-column: 1 / -1;">
           <div class="empty-state-icon">
             <i class="fas fa-car-crash"></i>
           </div>
@@ -317,7 +347,7 @@ class ProductosManager {
     const container = document.getElementById('vehiclesContainer');
     if (container) {
       container.innerHTML = `
-        <div class="empty-state">
+        <div class="empty-state" style="grid-column: 1 / -1;">
           <div class="empty-state-icon">
             <i class="fas fa-exclamation-triangle"></i>
           </div>
@@ -339,7 +369,7 @@ class ProductosManager {
     const container = document.getElementById('vehiclesContainer');
     if (container) {
       container.innerHTML = `
-        <div class="empty-state">
+        <div class="empty-state" style="grid-column: 1 / -1;">
           <div class="empty-state-icon">
             <i class="fas fa-exclamation-triangle"></i>
           </div>
@@ -355,6 +385,48 @@ class ProductosManager {
         </div>
       `;
     }
+  }
+  
+  // Método para obtener estadísticas
+  getStats() {
+    return this.stats;
+  }
+  
+  // Método para buscar vehículos
+  buscarVehiculos(query) {
+    if (!query) return this.vehiculos;
+    
+    const searchTerm = query.toLowerCase();
+    return this.vehiculos.filter(vehiculo => {
+      return (
+        (vehiculo.nombre && vehiculo.nombre.toLowerCase().includes(searchTerm)) ||
+        (vehiculo.marca && vehiculo.marca.toLowerCase().includes(searchTerm)) ||
+        (vehiculo.modelo && vehiculo.modelo.toLowerCase().includes(searchTerm)) ||
+        (vehiculo.descripcion && vehiculo.descripcion.toLowerCase().includes(searchTerm))
+      );
+    });
+  }
+  
+  // Método para ordenar vehículos
+  ordenarVehiculos(criterio, direccion = 'asc') {
+    const vehiculosCopy = [...this.vehiculos];
+    
+    vehiculosCopy.sort((a, b) => {
+      let valorA = a[criterio];
+      let valorB = b[criterio];
+      
+      // Manejar valores nulos/undefined
+      if (valorA === undefined || valorA === null) valorA = direccion === 'asc' ? Infinity : -Infinity;
+      if (valorB === undefined || valorB === null) valorB = direccion === 'asc' ? Infinity : -Infinity;
+      
+      if (direccion === 'asc') {
+        return valorA > valorB ? 1 : -1;
+      } else {
+        return valorA < valorB ? 1 : -1;
+      }
+    });
+    
+    return vehiculosCopy;
   }
 }
 
