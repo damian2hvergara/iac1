@@ -1,7 +1,7 @@
-// productos-manager.js - VERSIÓN COMPLETA CORREGIDA
+// productos-manager.js - VERSIÓN COMPLETA CON EXPORT
 
 // ===================== PRODUCTOS MANAGER =====================
-class ProductosManager {
+export class ProductosManager {
   constructor(config) {
     this.config = config || window.CONFIG;
     this.supabaseService = null;
@@ -98,16 +98,8 @@ class ProductosManager {
     let vehiculosFiltrados = this.vehiculos;
     
     if (filter !== 'all') {
-      let estadoInventario;
-      switch(filter) {
-        case 'stock': estadoInventario = 'stock'; break;
-        case 'transit': estadoInventario = 'transit'; break;
-        case 'reserved': estadoInventario = 'reserved'; break;
-        default: estadoInventario = filter;
-      }
-      
       vehiculosFiltrados = this.vehiculos.filter(v => 
-        v.estado === estadoInventario
+        v.estado === filter
       );
     }
     
@@ -430,5 +422,5 @@ class ProductosManager {
   }
 }
 
-// Hacer disponible globalmente
-window.ProductosManager = ProductosManager;
+// También exportar como default para compatibilidad
+export default ProductosManager;
