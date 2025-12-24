@@ -16,37 +16,33 @@ export class ProductosManager {
     setTimeout(() => this.init(), 100);
   }
   
-  async init() {
-    console.log('🚗 Inicializando ProductosManager...');
+// productos-manager.js - MODIFICAR EL MÉTODO init()
+async init() {
+  console.log('🚗 Inicializando ProductosManager...');
+  
+  try {
+    // Inicializar SupabaseService
+    const supabaseInitialized = await SupabaseService.init(this.config);
     
-    try {
-      // Verificar que SupabaseService esté disponible
-      if (typeof SupabaseService === 'undefined') {
-        console.error('❌ SupabaseService no está definido');
-        throw new Error('SupabaseService no disponible');
-      }
-      
-      this.supabaseService = new SupabaseService(this.config);
-      
-      // Testear conexión
-      const isConnected = await this.supabaseService.testConnection();
-      if (!isConnected) {
-        console.warn('⚠️ Sin conexión a Supabase');
-      }
-      
-      // Cargar datos
-      await this.cargarKits();
-      await this.cargarVehiculos();
-      
-      console.log('✅ ProductosManager listo');
-      return true;
-      
-    } catch (error) {
-      console.error('❌ Error inicializando:', error);
+    if (!supabaseInitialized) {
+      console.error('❌ No se pudo inicializar SupabaseService');
       this.mostrarErrorInicializacion();
       return false;
     }
+    
+    // Cargar datos
+    await this.cargarKits();
+    await this.cargarVehiculos();
+    
+    console.log('✅ ProductosManager listo');
+    return true;
+    
+  } catch (error) {
+    console.error('❌ Error inicializando ProductosManager:', error);
+    this.mostrarErrorInicializacion();
+    return false;
   }
+}
   
   async cargarVehiculos(forceRefresh = false) {
     if (this.isLoading) return;
