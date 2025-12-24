@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Diagnóstico Supabase</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <h1>Diagnóstico de Conexión Supabase</h1>
+  <div id="status"></div>
+  <div id="data"></div>
+  
+  <script>
+    const SUPABASE_URL = "https://cflpmluvhfldewiitymh.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_lvUG-G_2bzDxyVZwAF25HA_30dFAb3K";
+    
+    async function testConnection() {
+      const statusDiv = document.getElementById('status');
+      const dataDiv = document.getElementById('data');
+      
+      try {
+        // Crear cliente
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
+        // Test 1: Conexión básica
+        statusDiv.innerHTML = '<p>🔌 Probando conexión...</p>';
+        
+        const { data: testData, error: testError } = await supabase
+          .from('vehiculos_publicos')
+          .select('count')
+          .limit(1);
+        
+        if (testError) {
+          throw new Error(`Error de conexión: ${testError.message}`);
+        }
+        
+        statusDiv.innerHTML += '<p style="color: green;">✅ Conexión establecida</p>';
+        
+        // Test 2: Obtener datos
+        const { data, error } = await supabase
+          .from('vehiculos_publicos')
+          .select('*')
+          .limit(5);
+        
+        if (error) {
+          throw new Error(`Error obteniendo datos: ${error.message}`);
+        }
+        
+        statusDiv.innerHTML += `<p style="color: green;">✅ ${data.length} registros obtenidos</p>`;
+        
+        // Mostrar datos
+        if (data.length > 0) {
+          dataDiv.innerHTML = '<h3>Primeros registros:</h3><pre>' + 
+            JSON.stringify(data, null, 2) + 
+            '</pre>';
+        } else {
+          dataDiv.innerHTML = '<p>⚠️ La tabla está vacía</p>';
+        }
+        
+      } catch (error) {
+        statusDiv.innerHTML = `<p style="color: red;">❌ Error: ${error.message}</p>`;
+        console.error('Error detallado:', error);
+      }
+    }
+    
+    testConnection();
+  </script>
+</body>
+</html>
