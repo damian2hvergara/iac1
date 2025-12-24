@@ -1,4 +1,4 @@
-// main.js - VERSIÓN COMPLETA, ROBUSTA Y CORREGIDA
+// main.js - VERSIÓN CORREGIDA SIN ERRORES DE "RESERVED WORD"
 
 // Flag global para prevenir múltiples inicializaciones
 window.appInitialized = false;
@@ -152,7 +152,6 @@ export async function initializeApp() {
     handleCriticalError(error);
     
     // Forzar ocultar loading
-    const loadingOverlay = document.getElementById('loadingOverlay');
     if (loadingOverlay) {
       loadingOverlay.style.display = 'none';
     }
@@ -175,51 +174,54 @@ function setupEventListeners() {
   const filterButtons = document.querySelectorAll('.filter-button');
   filterButtons.forEach(button => {
     // Remover listeners anteriores para evitar duplicados
-    button.removeEventListener('click', handleFilterClick);
-    
-    // Agregar nuevo listener
-    button.addEventListener('click', handleFilterClick);
+    const newButton = button.cloneNode(true);
+    button.parentNode.replaceChild(newButton, button);
   });
   
-  function handleFilterClick(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    const filter = this.dataset.filter;
-    console.log(`🎯 Filtro clickeado: ${filter}`);
-    
-    if (!window.productosManager) {
-      console.error('❌ productosManager no disponible');
-      return;
-    }
-    
-    // Actualizar botones visualmente
-    filterButtons.forEach(btn => {
-      btn.classList.remove('active');
-      btn.setAttribute('aria-pressed', 'false');
+  // Re-seleccionar botones después del reemplazo
+  document.querySelectorAll('.filter-button').forEach(button => {
+    button.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      const filter = this.dataset.filter;
+      console.log(`🎯 Filtro clickeado: ${filter}`);
+      
+      if (!window.productosManager) {
+        console.error('❌ productosManager no disponible');
+        return;
+      }
+      
+      // Actualizar botones visualmente
+      document.querySelectorAll('.filter-button').forEach(btn => {
+        btn.classList.remove('active');
+        btn.setAttribute('aria-pressed', 'false');
+      });
+      
+      this.classList.add('active');
+      this.setAttribute('aria-pressed', 'true');
+      
+      // Aplicar filtro
+      window.productosManager.filtrarVehiculos(filter);
+      
+      // Scroll suave a vehículos si no estamos ya allí
+      if (filter !== 'all' && window.UICore) {
+        setTimeout(() => {
+          window.UICore.smoothScrollTo('vehiculos', 100);
+        }, 100);
+      }
     });
-    
-    this.classList.add('active');
-    this.setAttribute('aria-pressed', 'true');
-    
-    // Aplicar filtro
-    window.productosManager.filtrarVehiculos(filter);
-    
-    // Scroll suave a vehículos si no estamos ya allí
-    if (filter !== 'all' && window.UICore) {
-      setTimeout(() => {
-        window.UICore.smoothScrollTo('vehiculos', 100);
-      }, 100);
-    }
-  }
+  });
   
   // 2. BOTÓN DE REFRESH
   const refreshButton = document.getElementById('refreshButton');
   if (refreshButton) {
-    refreshButton.removeEventListener('click', handleRefreshClick);
-    refreshButton.addEventListener('click', handleRefreshClick);
+    // Clonar y reemplazar para limpiar eventos
+    const newRefreshButton = refreshButton.cloneNode(true);
+    refreshButton.parentNode.replaceChild(newRefreshButton, refreshButton);
     
-    function handleRefreshClick(e) {
+    // Agregar nuevo listener al botón clonado
+    newRefreshButton.addEventListener('click', function(e) {
       e.preventDefault();
       e.stopPropagation();
       
@@ -239,11 +241,11 @@ function setupEventListeners() {
       window.productosManager.cargarVehiculos(true);
       
       // Animación del botón
-      refreshButton.classList.add('rotating');
+      this.classList.add('rotating');
       setTimeout(() => {
-        refreshButton.classList.remove('rotating');
+        this.classList.remove('rotating');
       }, 1000);
-    }
+    });
   }
   
   // 3. MENÚ MÓVIL
@@ -251,20 +253,25 @@ function setupEventListeners() {
   const mobileMenu = document.getElementById('mobileMenu');
   
   if (menuToggle && mobileMenu) {
-    menuToggle.removeEventListener('click', handleMenuToggle);
-    menuToggle.addEventListener('click', handleMenuToggle);
+    // Clonar elementos para limpiar eventos
+    const newMenuToggle = menuToggle.cloneNode(true);
+    const newMobileMenu = mobileMenu.cloneNode(true);
     
-    function handleMenuToggle(e) {
+    menuToggle.parentNode.replaceChild(newMenuToggle, menuToggle);
+    mobileMenu.parentNode.replaceChild(newMobileMenu, mobileMenu);
+    
+    // Agregar eventos a los elementos clonados
+    newMenuToggle.addEventListener('click', function(e) {
       e.preventDefault();
       e.stopPropagation();
       
-      const isOpening = !mobileMenu.classList.contains('active');
+      const isOpening = !newMobileMenu.classList.contains('active');
       
-      mobileMenu.classList.toggle('active');
-      menuToggle.classList.toggle('active');
+      newMobileMenu.classList.toggle('active');
+      newMenuToggle.classList.toggle('active');
       
       // ARIA attributes
-      menuToggle.setAttribute('aria-expanded', isOpening);
+      newMenuToggle.setAttribute('aria-expanded', isOpening);
       
       console.log(`🍔 Menú móvil ${isOpening ? 'abierto' : 'cerrado'}`);
       
@@ -274,31 +281,28 @@ function setupEventListeners() {
       } else {
         document.body.style.overflow = '';
       }
-    }
+    });
     
     // Cerrar menú al hacer clic en enlaces
-    mobileMenu.querySelectorAll('a').forEach(link => {
-      link.removeEventListener('click', handleMenuLinkClick);
-      link.addEventListener('click', handleMenuLinkClick);
-      
-      function handleMenuLinkClick() {
-        mobileMenu.classList.remove('active');
-        menuToggle.classList.remove('active');
-        menuToggle.setAttribute('aria-expanded', 'false');
+    newMobileMenu.querySelectorAll('a').forEach(link => {
+      link.addEventListener('click', function() {
+        newMobileMenu.classList.remove('active');
+        newMenuToggle.classList.remove('active');
+        newMenuToggle.setAttribute('aria-expanded', 'false');
         document.body.style.overflow = '';
         
         console.log('🔗 Enlace de menú clickeado, cerrando menú');
-      }
+      });
     });
     
     // Cerrar menú al hacer clic fuera
     document.addEventListener('click', (e) => {
-      if (mobileMenu.classList.contains('active') && 
-          !mobileMenu.contains(e.target) && 
-          e.target !== menuToggle) {
-        mobileMenu.classList.remove('active');
-        menuToggle.classList.remove('active');
-        menuToggle.setAttribute('aria-expanded', 'false');
+      if (newMobileMenu.classList.contains('active') && 
+          !newMobileMenu.contains(e.target) && 
+          e.target !== newMenuToggle) {
+        newMobileMenu.classList.remove('active');
+        newMenuToggle.classList.remove('active');
+        newMenuToggle.setAttribute('aria-expanded', 'false');
         document.body.style.overflow = '';
       }
     });
@@ -307,23 +311,17 @@ function setupEventListeners() {
   // 4. BOTONES DE ACCIÓN EN EL HERO
   const heroButtons = document.querySelectorAll('.hero-cta a, .explore-arrow');
   heroButtons.forEach(button => {
-    button.removeEventListener('click', handleHeroButtonClick);
-    button.addEventListener('click', handleHeroButtonClick);
+    button.addEventListener('click', function(e) {
+      if (this.classList.contains('explore-arrow')) {
+        e.preventDefault();
+        if (window.UICore) {
+          window.UICore.smoothScrollTo('vehiculos', 80);
+        }
+      }
+    });
   });
   
-  function handleHeroButtonClick(e) {
-    if (this.classList.contains('explore-arrow')) {
-      e.preventDefault();
-      if (window.UICore) {
-        window.UICore.smoothScrollTo('vehiculos', 80);
-      }
-    }
-  }
-  
   // 5. SCROLL DEL HEADER
-  window.removeEventListener('scroll', handleHeaderScroll);
-  window.addEventListener('scroll', handleHeaderScroll, { passive: true });
-  
   function handleHeaderScroll() {
     const header = document.querySelector('.header');
     if (header) {
@@ -334,6 +332,9 @@ function setupEventListeners() {
       }
     }
   }
+  
+  window.removeEventListener('scroll', handleHeaderScroll);
+  window.addEventListener('scroll', handleHeaderScroll, { passive: true });
   
   // 6. BOTONES DE WHATSAPP
   document.querySelectorAll('.button-whatsapp').forEach(button => {
@@ -348,9 +349,6 @@ function setupEventListeners() {
   });
   
   // 7. CERRAR MODALES CON ESCAPE
-  document.removeEventListener('keydown', handleEscapeKey);
-  document.addEventListener('keydown', handleEscapeKey);
-  
   function handleEscapeKey(e) {
     if (e.key === 'Escape') {
       if (window.UIManager) {
@@ -359,13 +357,10 @@ function setupEventListeners() {
     }
   }
   
+  document.removeEventListener('keydown', handleEscapeKey);
+  document.addEventListener('keydown', handleEscapeKey);
+  
   // 8. ERRORES NO CAPTURADOS
-  window.removeEventListener('error', handleGlobalError);
-  window.removeEventListener('unhandledrejection', handlePromiseRejection);
-  
-  window.addEventListener('error', handleGlobalError);
-  window.addEventListener('unhandledrejection', handlePromiseRejection);
-  
   function handleGlobalError(event) {
     console.error('❌ Error global no capturado:', event.error);
   }
@@ -373,6 +368,12 @@ function setupEventListeners() {
   function handlePromiseRejection(event) {
     console.error('❌ Promesa rechazada no capturada:', event.reason);
   }
+  
+  window.removeEventListener('error', handleGlobalError);
+  window.removeEventListener('unhandledrejection', handlePromiseRejection);
+  
+  window.addEventListener('error', handleGlobalError);
+  window.addEventListener('unhandledrejection', handlePromiseRejection);
   
   console.log('✅ Todos los event listeners configurados');
 }
@@ -573,46 +574,52 @@ if (typeof window !== 'undefined') {
   };
 }
 
-// Añadir estilos para animaciones
-const style = document.createElement('style');
-style.textContent = `
-  @keyframes rotate {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-  }
-  
-  .rotating {
-    animation: rotate 1s linear;
-  }
-  
-  @keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-    100% { transform: scale(1); }
-  }
-  
-  .indicator-pulse {
-    animation: pulse 0.3s ease;
-  }
-  
-  .card-hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-  }
-  
-  .filter-active {
-    transform: scale(1.05);
-    transition: transform 0.2s ease;
-  }
-  
-  .critical-error {
-    animation: fadeIn 0.5s ease;
-  }
-  
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-`;
-
-document.head.appendChild(style);
+// Añadir estilos para animaciones (SOLO si no existen ya)
+if (!document.getElementById('ui-manager-styles')) {
+  const style = document.createElement('style');
+  style.id = 'ui-manager-styles';
+  style.textContent = `
+    @keyframes rotate {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    
+    .rotating {
+      animation: rotate 1s linear;
+    }
+    
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+    
+    .indicator-pulse {
+      animation: pulse 0.3s ease;
+    }
+    
+    .card-hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+    
+    .filter-active {
+      transform: scale(1.05);
+      transition: transform 0.2s ease;
+    }
+    
+    .critical-error {
+      animation: fadeIn 0.5s ease;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .counter-updated {
+      animation: pulse 0.5s ease;
+    }
+  `;
+  document.head.appendChild(style);
+}
