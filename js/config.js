@@ -3,6 +3,7 @@ const CONFIG = {
   supabase: {
     url: "https://cflpmluvhfldewiitymh.supabase.co",
     anonKey: "sb_publishable_lvUG-G_2bzDxyVZwAF25HA_30dFAb3K"
+    tabla: "vehiculos_publicos"
   },
   
   contacto: {
