@@ -1,4 +1,4 @@
-// main.js - VERSIÓN CORREGIDA SIN ERRORES DE "RESERVED WORD"
+// main.js - VERSIÓN COMPLETA CORREGIDA SIN PALABRAS RESERVADAS
 
 // Flag global para prevenir múltiples inicializaciones
 window.appInitialized = false;
@@ -171,21 +171,13 @@ function setupEventListeners() {
   console.log('🔗 Configurando event listeners específicos...');
   
   // 1. FILTROS DE VEHÍCULOS
-  const filterButtons = document.querySelectorAll('.filter-button');
-  filterButtons.forEach(button => {
-    // Remover listeners anteriores para evitar duplicados
-    const newButton = button.cloneNode(true);
-    button.parentNode.replaceChild(newButton, button);
-  });
-  
-  // Re-seleccionar botones después del reemplazo
   document.querySelectorAll('.filter-button').forEach(button => {
     button.addEventListener('click', function(e) {
       e.preventDefault();
       e.stopPropagation();
       
-      const filter = this.dataset.filter;
-      console.log(`🎯 Filtro clickeado: ${filter}`);
+      const filtroSeleccionado = this.dataset.filter;
+      console.log(`🎯 Filtro clickeado: ${filtroSeleccionado}`);
       
       if (!window.productosManager) {
         console.error('❌ productosManager no disponible');
@@ -202,10 +194,10 @@ function setupEventListeners() {
       this.setAttribute('aria-pressed', 'true');
       
       // Aplicar filtro
-      window.productosManager.filtrarVehiculos(filter);
+      window.productosManager.filtrarVehiculos(filtroSeleccionado);
       
       // Scroll suave a vehículos si no estamos ya allí
-      if (filter !== 'all' && window.UICore) {
+      if (filtroSeleccionado !== 'all' && window.UICore) {
         setTimeout(() => {
           window.UICore.smoothScrollTo('vehiculos', 100);
         }, 100);
@@ -216,12 +208,7 @@ function setupEventListeners() {
   // 2. BOTÓN DE REFRESH
   const refreshButton = document.getElementById('refreshButton');
   if (refreshButton) {
-    // Clonar y reemplazar para limpiar eventos
-    const newRefreshButton = refreshButton.cloneNode(true);
-    refreshButton.parentNode.replaceChild(newRefreshButton, refreshButton);
-    
-    // Agregar nuevo listener al botón clonado
-    newRefreshButton.addEventListener('click', function(e) {
+    refreshButton.addEventListener('click', function(e) {
       e.preventDefault();
       e.stopPropagation();
       
@@ -253,30 +240,22 @@ function setupEventListeners() {
   const mobileMenu = document.getElementById('mobileMenu');
   
   if (menuToggle && mobileMenu) {
-    // Clonar elementos para limpiar eventos
-    const newMenuToggle = menuToggle.cloneNode(true);
-    const newMobileMenu = mobileMenu.cloneNode(true);
-    
-    menuToggle.parentNode.replaceChild(newMenuToggle, menuToggle);
-    mobileMenu.parentNode.replaceChild(newMobileMenu, mobileMenu);
-    
-    // Agregar eventos a los elementos clonados
-    newMenuToggle.addEventListener('click', function(e) {
+    menuToggle.addEventListener('click', function(e) {
       e.preventDefault();
       e.stopPropagation();
       
-      const isOpening = !newMobileMenu.classList.contains('active');
+      const abriendoMenu = !mobileMenu.classList.contains('active');
       
-      newMobileMenu.classList.toggle('active');
-      newMenuToggle.classList.toggle('active');
+      mobileMenu.classList.toggle('active');
+      menuToggle.classList.toggle('active');
       
       // ARIA attributes
-      newMenuToggle.setAttribute('aria-expanded', isOpening);
+      menuToggle.setAttribute('aria-expanded', abriendoMenu);
       
-      console.log(`🍔 Menú móvil ${isOpening ? 'abierto' : 'cerrado'}`);
+      console.log(`🍔 Menú móvil ${abriendoMenu ? 'abierto' : 'cerrado'}`);
       
       // Prevenir scroll del body cuando el menú está abierto
-      if (isOpening) {
+      if (abriendoMenu) {
         document.body.style.overflow = 'hidden';
       } else {
         document.body.style.overflow = '';
@@ -284,11 +263,11 @@ function setupEventListeners() {
     });
     
     // Cerrar menú al hacer clic en enlaces
-    newMobileMenu.querySelectorAll('a').forEach(link => {
+    mobileMenu.querySelectorAll('a').forEach(link => {
       link.addEventListener('click', function() {
-        newMobileMenu.classList.remove('active');
-        newMenuToggle.classList.remove('active');
-        newMenuToggle.setAttribute('aria-expanded', 'false');
+        mobileMenu.classList.remove('active');
+        menuToggle.classList.remove('active');
+        menuToggle.setAttribute('aria-expanded', 'false');
         document.body.style.overflow = '';
         
         console.log('🔗 Enlace de menú clickeado, cerrando menú');
@@ -297,21 +276,20 @@ function setupEventListeners() {
     
     // Cerrar menú al hacer clic fuera
     document.addEventListener('click', (e) => {
-      if (newMobileMenu.classList.contains('active') && 
-          !newMobileMenu.contains(e.target) && 
-          e.target !== newMenuToggle) {
-        newMobileMenu.classList.remove('active');
-        newMenuToggle.classList.remove('active');
-        newMenuToggle.setAttribute('aria-expanded', 'false');
+      if (mobileMenu.classList.contains('active') && 
+          !mobileMenu.contains(e.target) && 
+          e.target !== menuToggle) {
+        mobileMenu.classList.remove('active');
+        menuToggle.classList.remove('active');
+        menuToggle.setAttribute('aria-expanded', 'false');
         document.body.style.overflow = '';
       }
     });
   }
   
   // 4. BOTONES DE ACCIÓN EN EL HERO
-  const heroButtons = document.querySelectorAll('.hero-cta a, .explore-arrow');
-  heroButtons.forEach(button => {
-    button.addEventListener('click', function(e) {
+  document.querySelectorAll('.hero-cta a, .explore-arrow').forEach(boton => {
+    boton.addEventListener('click', function(e) {
       if (this.classList.contains('explore-arrow')) {
         e.preventDefault();
         if (window.UICore) {
@@ -322,7 +300,7 @@ function setupEventListeners() {
   });
   
   // 5. SCROLL DEL HEADER
-  function handleHeaderScroll() {
+  function manejarScrollHeader() {
     const header = document.querySelector('.header');
     if (header) {
       if (window.scrollY > 50) {
@@ -333,14 +311,13 @@ function setupEventListeners() {
     }
   }
   
-  window.removeEventListener('scroll', handleHeaderScroll);
-  window.addEventListener('scroll', handleHeaderScroll, { passive: true });
+  window.addEventListener('scroll', manejarScrollHeader, { passive: true });
   
   // 6. BOTONES DE WHATSAPP
-  document.querySelectorAll('.button-whatsapp').forEach(button => {
-    if (!button.hasAttribute('data-whatsapp-bound')) {
-      button.setAttribute('data-whatsapp-bound', 'true');
-      button.addEventListener('click', function(e) {
+  document.querySelectorAll('.button-whatsapp').forEach(boton => {
+    if (!boton.hasAttribute('data-whatsapp-bound')) {
+      boton.setAttribute('data-whatsapp-bound', 'true');
+      boton.addEventListener('click', function(e) {
         if (!this.href || this.href === '#') {
           console.log('📞 Botón WhatsApp clickeado sin URL específica');
         }
@@ -349,7 +326,7 @@ function setupEventListeners() {
   });
   
   // 7. CERRAR MODALES CON ESCAPE
-  function handleEscapeKey(e) {
+  function manejarTeclaEscape(e) {
     if (e.key === 'Escape') {
       if (window.UIManager) {
         window.UIManager.closeAllModals();
@@ -357,23 +334,19 @@ function setupEventListeners() {
     }
   }
   
-  document.removeEventListener('keydown', handleEscapeKey);
-  document.addEventListener('keydown', handleEscapeKey);
+  document.addEventListener('keydown', manejarTeclaEscape);
   
   // 8. ERRORES NO CAPTURADOS
-  function handleGlobalError(event) {
+  function manejarErrorGlobal(event) {
     console.error('❌ Error global no capturado:', event.error);
   }
   
-  function handlePromiseRejection(event) {
+  function manejarRechazoPromesa(event) {
     console.error('❌ Promesa rechazada no capturada:', event.reason);
   }
   
-  window.removeEventListener('error', handleGlobalError);
-  window.removeEventListener('unhandledrejection', handlePromiseRejection);
-  
-  window.addEventListener('error', handleGlobalError);
-  window.addEventListener('unhandledrejection', handlePromiseRejection);
+  window.addEventListener('error', manejarErrorGlobal);
+  window.addEventListener('unhandledrejection', manejarRechazoPromesa);
   
   console.log('✅ Todos los event listeners configurados');
 }
@@ -419,7 +392,7 @@ function handleCriticalError(error) {
           <a href="https://wa.me/56938654827" target="_blank" class="button button-outline" style="border-color: var(--error); color: var(--error);">
             <i class="fab fa-whatsapp"></i> Soporte Técnico
           </a>
-          <button class="button button-outline" onclick="showDebugInfo()">
+          <button class="button button-outline" onclick="mostrarInfoDebug()">
             <i class="fas fa-bug"></i> Info de Depuración
           </button>
         </div>
@@ -439,12 +412,11 @@ function handleCriticalError(error) {
   }
   
   // 3. Registrar error para análisis
-  logErrorToServer(error);
+  registrarErrorServidor(error);
 }
 
-function logErrorToServer(error) {
-  // Esto es opcional - puedes enviar errores a tu servidor para análisis
-  const errorData = {
+function registrarErrorServidor(error) {
+  const datosError = {
     message: error.message,
     stack: error.stack,
     url: window.location.href,
@@ -453,14 +425,11 @@ function logErrorToServer(error) {
     appVersion: '2.0.0'
   };
   
-  console.log('📤 Error registrado para análisis:', errorData);
-  
-  // Si tienes un endpoint para errores, puedes enviarlo aquí
-  // fetch('/api/log-error', { method: 'POST', body: JSON.stringify(errorData) });
+  console.log('📤 Error registrado para análisis:', datosError);
 }
 
-function showDebugInfo() {
-  const debugInfo = {
+function mostrarInfoDebug() {
+  const infoDebug = {
     appInitialized: window.appInitialized,
     appLoading: window.appLoading,
     config: window.CONFIG ? {
@@ -489,13 +458,13 @@ function showDebugInfo() {
     }
   };
   
-  alert(`=== DEBUG INFO ===\n\n${JSON.stringify(debugInfo, null, 2)}`);
+  alert(`=== DEBUG INFO ===\n\n${JSON.stringify(infoDebug, null, 2)}`);
 }
 
 // ===================== INICIALIZACIÓN AUTOMÁTICA =====================
 
 // Función para verificar si podemos inicializar
-function shouldInitialize() {
+function puedeInicializar() {
   // Verificar que estamos en un navegador
   if (typeof window === 'undefined') return false;
   
@@ -514,9 +483,9 @@ function shouldInitialize() {
 }
 
 // Manejar diferentes estados de readiness del DOM
-function handleDOMReady() {
-  if (!shouldInitialize()) {
-    setTimeout(handleDOMReady, 100);
+function manejarDOMListo() {
+  if (!puedeInicializar()) {
+    setTimeout(manejarDOMListo, 100);
     return;
   }
   
@@ -527,10 +496,10 @@ function handleDOMReady() {
 // Verificar el estado actual del documento
 if (document.readyState === 'loading') {
   // El DOM todavía se está cargando
-  document.addEventListener('DOMContentLoaded', handleDOMReady);
+  document.addEventListener('DOMContentLoaded', manejarDOMListo);
 } else {
   // El DOM ya está listo
-  handleDOMReady();
+  manejarDOMListo();
 }
 
 // También inicializar cuando la ventana se carga completamente
@@ -552,11 +521,11 @@ if (typeof window !== 'undefined') {
       window.appLoading = false;
       initializeApp();
     },
-    showDebugInfo,
+    mostrarInfoDebug,
     testSupabase: async () => {
       if (window.SupabaseService) {
-        const status = window.SupabaseService.getStatus();
-        alert(`Supabase Status:\n${JSON.stringify(status, null, 2)}`);
+        const estado = window.SupabaseService.getStatus();
+        alert(`Supabase Status:\n${JSON.stringify(estado, null, 2)}`);
       } else {
         alert('SupabaseService no disponible');
       }
@@ -576,9 +545,9 @@ if (typeof window !== 'undefined') {
 
 // Añadir estilos para animaciones (SOLO si no existen ya)
 if (!document.getElementById('ui-manager-styles')) {
-  const style = document.createElement('style');
-  style.id = 'ui-manager-styles';
-  style.textContent = `
+  const estilo = document.createElement('style');
+  estilo.id = 'ui-manager-styles';
+  estilo.textContent = `
     @keyframes rotate {
       from { transform: rotate(0deg); }
       to { transform: rotate(360deg); }
@@ -621,5 +590,35 @@ if (!document.getElementById('ui-manager-styles')) {
       animation: pulse 0.5s ease;
     }
   `;
-  document.head.appendChild(style);
+  document.head.appendChild(estilo);
 }
+
+// Detector de palabras reservadas (para debugging)
+function buscarPalabrasReservadas() {
+  const palabrasReservadas = [
+    'class', 'let', 'const', 'var', 'function', 'return', 'if', 'else',
+    'for', 'while', 'do', 'switch', 'case', 'break', 'continue', 'default',
+    'try', 'catch', 'finally', 'throw', 'new', 'delete', 'typeof', 'instanceof',
+    'void', 'this', 'super', 'extends', 'export', 'import', 'async', 'await',
+    'yield', 'get', 'set', 'static', 'private', 'public', 'protected', 'interface',
+    'implements', 'package', 'enum'
+  ];
+  
+  let encontradas = [];
+  
+  // Revisar todas las variables globales
+  for (let clave in window) {
+    if (palabrasReservadas.includes(clave.toLowerCase())) {
+      encontradas.push(`Variable global: ${clave}`);
+    }
+  }
+  
+  if (encontradas.length > 0) {
+    console.error('❌ Palabras reservadas encontradas:', encontradas);
+  } else {
+    console.log('✅ No se encontraron palabras reservadas usadas como variables');
+  }
+}
+
+// Ejecutar después de un momento
+setTimeout(buscarPalabrasReservadas, 2000);
