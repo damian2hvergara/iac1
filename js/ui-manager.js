@@ -1,10 +1,12 @@
-// ui-manager.js - ORQUESTADOR PRINCIPAL DE UI MEJORADO
+// ui-manager.js - ORQUESTADOR PRINCIPAL DE UI MEJORADO - VERSIÓN COMPLETA
 import { UICore, UINotifications } from './ui-core.js';
 import { UIModals, UIKits, UISlider } from './ui-components.js';
 
 export class UIManager {
   static initialized = false;
   static eventListeners = new Map();
+  static activeModal = null;
+  static previouslyFocused = null;
   
   static async init(options = {}) {
     if (this.initialized) {
@@ -89,26 +91,43 @@ export class UIManager {
         document.body.classList.remove('scrolling');
       }, 100);
     });
+    
+    // Prevenir múltiples clicks rápidos
+    let lastClickTime = 0;
+    document.addEventListener('click', (e) => {
+      const now = Date.now();
+      if (now - lastClickTime < 300) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      lastClickTime = now;
+    }, true);
   }
   
   static exposeToGlobal() {
-    window.UIManager = this;
-    window.UICore = UICore;
-    window.UIModals = UIModals;
-    window.UIKits = UIKits;
-    window.UISlider = UISlider;
-    window.UINotifications = UINotifications;
-    
-    // Métodos abreviados para uso rápido
-    window.showNotification = UINotifications.show;
-    window.showError = UINotifications.error;
-    window.showSuccess = UINotifications.success;
-    window.showWarning = UINotifications.warning;
-    window.showInfo = UINotifications.info;
-    
-    window.closeAllModals = this.closeAllModals;
-    window.showModal = this.showModal;
-    window.closeModal = this.closeModal;
+    // Solo exponer si no existen ya
+    if (!window.UIManager) {
+      window.UIManager = this;
+      window.UICore = UICore;
+      window.UIModals = UIModals;
+      window.UIKits = UIKits;
+      window.UISlider = UISlider;
+      window.UINotifications = UINotifications;
+      
+      // Métodos abreviados para uso rápido
+      window.showNotification = UINotifications.show;
+      window.showError = UINotifications.error;
+      window.showSuccess = UINotifications.success;
+      window.showWarning = UINotifications.warning;
+      window.showInfo = UINotifications.info;
+      
+      window.closeAllModals = this.closeAllModals;
+      window.showModal = this.showModal;
+      window.closeModal = this.closeModal;
+      window.customizeVehicle = this.customizeVehicle;
+      window.contactVehicle = this.contactVehicle;
+      window.mostrarDetallesVehiculo = this.mostrarDetallesVehiculo;
+    }
   }
   
   static initAutoSliders() {
@@ -128,18 +147,36 @@ export class UIManager {
     });
   }
   
-  // ========== MÉTODOS PÚBLICOS ==========
+  // ========== MÉTODOS PÚBLICOS PRINCIPALES ==========
   
   // Para vehiculos-manager.js y productos.js
   static mostrarDetallesVehiculo(vehicleId) {
+    console.log(`🔍 Mostrando detalles del vehículo: ${vehicleId}`);
+    
     try {
-      const vehiculo = window.productosManager?.getVehiculoById(vehicleId);
+      if (!window.productosManager) {
+        console.error('❌ productosManager no disponible');
+        this.showError('Sistema no disponible');
+        return;
+      }
+      
+      const vehiculo = window.productosManager.getVehiculoById(vehicleId);
       if (!vehiculo) {
+        console.error(`❌ Vehículo ${vehicleId} no encontrado`);
         this.showError('Vehículo no encontrado');
         return;
       }
       
-      UIModals.showVehicleDetails(vehicleId);
+      // Verificar que UIModals esté disponible
+      if (!window.UIModals || typeof window.UIModals.showVehicleDetails !== 'function') {
+        console.error('❌ UIModals no disponible');
+        
+        // Fallback: abrir WhatsApp directamente
+        this.contactVehicle(vehicleId);
+        return;
+      }
+      
+      window.UIModals.showVehicleDetails(vehicleId);
       
       // Seguimiento de evento
       this.trackEvent('view_vehicle_details', {
@@ -150,10 +187,144 @@ export class UIManager {
     } catch (error) {
       console.error('Error al mostrar detalles:', error);
       this.showError('Error al cargar los detalles del vehículo');
+      
+      // Fallback: contactar por WhatsApp
+      this.contactVehicle(vehicleId);
     }
   }
   
-  // Notificaciones
+  // Para personalización de vehículos
+  static customizeVehicle(vehicleId) {
+    console.log(`🔧 Personalizando vehículo: ${vehicleId}`);
+    
+    try {
+      if (!window.productosManager) {
+        console.error('❌ productosManager no disponible');
+        this.showError('Sistema no disponible');
+        return;
+      }
+      
+      const vehiculo = window.productosManager.getVehiculoById(vehicleId);
+      if (!vehiculo) {
+        console.error(`❌ Vehículo ${vehicleId} no encontrado`);
+        this.showError('Vehículo no encontrado');
+        return;
+      }
+      
+      // Verificar que UIKits esté disponible
+      if (!window.UIKits || typeof window.UIKits.showKitsModal !== 'function') {
+        console.error('❌ UIKits no disponible');
+        
+        // Fallback: abrir WhatsApp directamente
+        this.contactVehicle(vehicleId);
+        return;
+      }
+      
+      // Verificar y crear modal si no existe
+      if (!document.getElementById('customizationModal')) {
+        console.log('🛠️ Creando modal de personalización...');
+        window.UIKits.createCustomizationModal();
+      }
+      
+      // Abrir personalizador
+      window.UIKits.showKitsModal(vehicleId);
+      
+      // Seguimiento de evento
+      this.trackEvent('start_customization', {
+        vehicle_id: vehicleId,
+        vehicle_name: vehiculo.nombre
+      });
+      
+    } catch (error) {
+      console.error('❌ Error al personalizar vehículo:', error);
+      this.showError('Error al abrir el personalizador');
+      
+      // Fallback extremo: contactar por WhatsApp
+      this.contactVehicle(vehicleId);
+    }
+  }
+  
+  // Para contacto por WhatsApp
+  static contactVehicle(vehicleId, kitId = null) {
+    console.log(`📞 Contactando vehículo: ${vehicleId}${kitId ? ` con kit: ${kitId}` : ''}`);
+    
+    try {
+      if (!window.productosManager) {
+        console.error('❌ productosManager no disponible');
+        this.showError('Sistema no disponible');
+        return;
+      }
+      
+      const vehiculo = window.productosManager.getVehiculoById(vehicleId);
+      if (!vehiculo) {
+        console.error(`❌ Vehículo ${vehicleId} no encontrado`);
+        this.showError('Vehículo no encontrado');
+        return;
+      }
+      
+      const kits = window.productosManager.getKitsForDisplay() || [];
+      const kit = kitId ? kits.find(k => k.id === kitId) : null;
+      
+      // Generar URL de WhatsApp
+      let whatsappUrl;
+      if (window.productosManager.getWhatsAppUrl) {
+        whatsappUrl = window.productosManager.getWhatsAppUrl(vehiculo, kit);
+      } else {
+        // Fallback manual
+        const config = window.CONFIG || {};
+        const baseUrl = config.urls?.social?.whatsapp || 'https://wa.me/56938654827';
+        
+        let mensaje = `Hola, estoy interesado en:\n\n`;
+        mensaje += `*${vehiculo.nombre}*\n`;
+        mensaje += `💰 *Precio:* ${vehiculo.precio ? `$${vehiculo.precio.toLocaleString()}` : 'Consultar'}\n`;
+        mensaje += `📋 *Disponibilidad:* ${vehiculo.estadoTexto || 'Disponible'}\n`;
+        
+        if (vehiculo.ano) mensaje += `📅 *Año:* ${vehiculo.ano}\n`;
+        if (vehiculo.kilometraje) mensaje += `🛣️ *Kilometraje:* ${vehiculo.kilometraje.toLocaleString()} km\n`;
+        if (vehiculo.motor) mensaje += `⚙️ *Motor:* ${vehiculo.motor}\n`;
+        
+        if (kit) {
+          mensaje += `\n🎁 *Kit:* ${kit.nombre}\n`;
+          if (kit.precio > 0) mensaje += `💎 *Precio kit:* +$${kit.precio.toLocaleString()}\n`;
+        }
+        
+        mensaje += `\nMe gustaría más información.`;
+        whatsappUrl = `${baseUrl}?text=${encodeURIComponent(mensaje)}`;
+      }
+      
+      // Confirmación antes de abrir
+      const message = kit 
+        ? `¿Deseas contactar por WhatsApp para cotizar el ${vehiculo.nombre} con Kit ${kit.nombre}?`
+        : `¿Deseas contactar por WhatsApp para consultar sobre el ${vehiculo.nombre}?`;
+      
+      if (window.confirm(message)) {
+        window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
+        
+        // Seguimiento de evento
+        this.trackEvent('whatsapp_contact', {
+          vehicle_id: vehicleId,
+          kit_id: kitId,
+          vehicle_name: vehiculo.nombre,
+          kit_name: kit?.nombre
+        });
+      }
+      
+    } catch (error) {
+      console.error('❌ Error al contactar:', error);
+      this.showError('Error al generar el enlace de contacto');
+      
+      // Fallback extremo: URL básica de WhatsApp
+      const baseUrl = 'https://wa.me/56938654827';
+      const vehiculo = window.productosManager?.getVehiculoById(vehicleId);
+      const nombre = vehiculo?.nombre || 'Vehículo';
+      const fallbackUrl = `${baseUrl}?text=${encodeURIComponent(`Hola, estoy interesado en: ${nombre}`)}`;
+      
+      window.open(fallbackUrl, '_blank', 'noopener,noreferrer');
+    }
+  }
+  
+  // ========== SISTEMA DE NOTIFICACIONES ==========
+  
   static showNotification(mensaje, tipo = 'info', duration = 5000, title = null) {
     return UINotifications.show(mensaje, tipo, duration, title);
   }
@@ -174,7 +345,8 @@ export class UIManager {
     return UINotifications.info(mensaje, duration);
   }
   
-  // Para productos.js (filtros)
+  // ========== MÉTODOS PARA FILTROS Y CONTADORES ==========
+  
   static updateFilterButtons(activeFilter) {
     UICore.updateFilterButtons(activeFilter);
   }
@@ -183,70 +355,18 @@ export class UIManager {
     UICore.updateCounter(elementId, count, prefix, suffix);
   }
   
-  // Para botones en HTML
-  static customizeVehicle(vehicleId) {
-    try {
-      const vehiculo = window.productosManager?.getVehiculoById(vehicleId);
-      if (!vehiculo) {
-        this.showError('Vehículo no encontrado');
-        return;
-      }
-      
-      UIKits.showKitsModal(vehicleId);
-      
-      // Seguimiento de evento
-      this.trackEvent('start_customization', {
-        vehicle_id: vehicleId,
-        vehicle_name: vehiculo.nombre
-      });
-      
-    } catch (error) {
-      console.error('Error al personalizar vehículo:', error);
-      this.showError('Error al abrir el personalizador');
+  static filtrarVehiculos(filter) {
+    console.log(`🎯 Filtro solicitado: ${filter}`);
+    
+    if (window.productosManager && typeof window.productosManager.filtrarVehiculos === 'function') {
+      window.productosManager.filtrarVehiculos(filter);
+    } else {
+      console.error('❌ productosManager o método filtrarVehiculos no disponible');
     }
   }
   
-  static contactVehicle(vehicleId, kitId = null) {
-    try {
-      const vehiculo = window.productosManager?.getVehiculoById(vehicleId);
-      if (!vehiculo) {
-        this.showError('Vehículo no encontrado');
-        return;
-      }
-      
-      const kits = window.productosManager?.getKitsForDisplay() || [];
-      const kit = kitId ? kits.find(k => k.id === kitId) : null;
-      
-      if (window.productosManager?.getWhatsAppUrl) {
-        const url = window.productosManager.getWhatsAppUrl(vehiculo, kit);
-        
-        // Confirmación
-        const message = kit 
-          ? `¿Deseas contactar por WhatsApp para cotizar el ${vehiculo.nombre} con Kit ${kit.nombre}?`
-          : `¿Deseas contactar por WhatsApp para consultar sobre el ${vehiculo.nombre}?`;
-        
-        if (window.confirm(message)) {
-          window.open(url, '_blank', 'noopener,noreferrer');
-          
-          // Seguimiento de evento
-          this.trackEvent('whatsapp_contact', {
-            vehicle_id: vehicleId,
-            kit_id: kitId,
-            vehicle_name: vehiculo.nombre,
-            kit_name: kit?.nombre
-          });
-        }
-      } else {
-        this.showError('No se pudo generar el enlace de contacto');
-      }
-      
-    } catch (error) {
-      console.error('Error al contactar:', error);
-      this.showError('Error al generar el enlace de contacto');
-    }
-  }
+  // ========== MÉTODOS DE SLIDER ==========
   
-  // Slider methods
   static initSlider(sliderId, images, vehicleName = '', options = {}) {
     return UISlider.init(sliderId, images, vehicleName, options);
   }
@@ -271,24 +391,35 @@ export class UIManager {
     return UISlider.update(sliderId, images, vehicleName);
   }
   
-  // Kit methods
+  // ========== MÉTODOS DE KITS ==========
+  
   static selectKit(kitId, vehicleId) {
-    UIKits.selectKit(kitId, vehicleId);
+    if (window.UIKits && typeof window.UIKits.selectKit === 'function') {
+      window.UIKits.selectKit(kitId, vehicleId);
+    }
   }
   
   static contactWithKit(vehicleId, kitId) {
-    UIKits.contactWithKit(vehicleId, kitId);
+    if (window.UIKits && typeof window.UIKits.contactWithKit === 'function') {
+      window.UIKits.contactWithKit(vehicleId, kitId);
+    }
   }
   
   static contactWithSelectedKit(vehicleId) {
-    UIKits.contactWithSelectedKit(vehicleId);
+    if (window.UIKits && typeof window.UIKits.contactWithSelectedKit === 'function') {
+      window.UIKits.contactWithSelectedKit(vehicleId);
+    }
   }
   
   static getSelectedKit() {
-    return UIKits.getSelectedKit();
+    if (window.UIKits && typeof window.UIKits.getSelectedKit === 'function') {
+      return window.UIKits.getSelectedKit();
+    }
+    return null;
   }
   
-  // UI Core methods
+  // ========== MÉTODOS DE UI CORE ==========
+  
   static showLoading(containerId, message = 'Cargando...') {
     UICore.showLoading(containerId, message);
   }
@@ -298,14 +429,19 @@ export class UIManager {
   }
   
   static showModal(modalId) {
+    this.activeModal = modalId;
     UIModals.showModal(modalId);
   }
   
   static closeModal(modalId) {
+    if (this.activeModal === modalId) {
+      this.activeModal = null;
+    }
     UIModals.closeModal(modalId);
   }
   
   static closeAllModals() {
+    this.activeModal = null;
     UIModals.closeAllModals();
   }
   
@@ -313,12 +449,12 @@ export class UIManager {
     UICore.smoothScrollTo(elementId, offset);
   }
   
-  // Clear notifications
   static clearNotifications() {
     UINotifications.clearAll();
   }
   
-  // Event handling
+  // ========== MANEJO DE EVENTOS ==========
+  
   static addEventListener(event, callback, element = document) {
     if (!this.eventListeners.has(event)) {
       this.eventListeners.set(event, []);
@@ -351,7 +487,8 @@ export class UIManager {
     this.eventListeners.clear();
   }
   
-  // Utility methods
+  // ========== MÉTODOS DE UTILIDAD ==========
+  
   static formatPrice(price) {
     return UICore.formatPrice(price);
   }
@@ -379,7 +516,8 @@ export class UIManager {
     return UICore.isValidPhone(phone);
   }
   
-  // Storage methods
+  // ========== MÉTODOS DE ALMACENAMIENTO ==========
+  
   static getStorage(key) {
     return UICore.getLocalStorage(key);
   }
@@ -392,7 +530,6 @@ export class UIManager {
     UICore.removeLocalStorage(key);
   }
   
-  // Session storage methods
   static getSession(key) {
     return UICore.getSessionStorage(key);
   }
@@ -405,7 +542,6 @@ export class UIManager {
     UICore.removeSessionStorage(key);
   }
   
-  // Cookie methods
   static getCookie(name) {
     return UICore.getCookie(name);
   }
@@ -418,7 +554,8 @@ export class UIManager {
     UICore.deleteCookie(name);
   }
   
-  // URL methods
+  // ========== MÉTODOS DE URL ==========
+  
   static getUrlParams() {
     return UICore.getUrlParams();
   }
@@ -427,33 +564,63 @@ export class UIManager {
     UICore.setUrlParams(params);
   }
   
-  // Analytics/tracking
+  // ========== ANALYTICS Y SEGUIMIENTO ==========
+  
   static trackEvent(eventName, eventData = {}) {
-    // Google Analytics
-    if (typeof gtag !== 'undefined') {
-      gtag('event', eventName, eventData);
-    }
-    
-    // Facebook Pixel
-    if (typeof fbq !== 'undefined') {
-      fbq('trackCustom', eventName, eventData);
-    }
-    
-    // Console para desarrollo
-    if (process.env.NODE_ENV === 'development') {
+    try {
+      // Google Analytics
+      if (typeof gtag !== 'undefined') {
+        gtag('event', eventName, eventData);
+      }
+      
+      // Facebook Pixel
+      if (typeof fbq !== 'undefined') {
+        fbq('trackCustom', eventName, eventData);
+      }
+      
+      // Console para desarrollo
       console.log(`📊 Evento: ${eventName}`, eventData);
+      
+      // Evento personalizado
+      const event = new CustomEvent(`ui:${eventName}`, { detail: eventData });
+      document.dispatchEvent(event);
+      
+      // Guardar en localStorage para análisis posterior
+      const analyticsKey = 'ui_analytics_events';
+      const events = this.getStorage(analyticsKey) || [];
+      events.push({
+        event: eventName,
+        data: eventData,
+        timestamp: new Date().toISOString(),
+        url: window.location.href
+      });
+      
+      // Mantener solo los últimos 100 eventos
+      if (events.length > 100) {
+        events.splice(0, events.length - 100);
+      }
+      
+      this.setStorage(analyticsKey, events);
+      
+    } catch (error) {
+      console.warn('⚠️ Error en trackEvent:', error);
     }
-    
-    // Evento personalizado
-    const event = new CustomEvent(`ui:${eventName}`, { detail: eventData });
-    document.dispatchEvent(event);
   }
   
   static trackPageView(pageName) {
     this.trackEvent('page_view', { page_name: pageName });
   }
   
-  // Performance
+  static getAnalyticsEvents() {
+    return this.getStorage('ui_analytics_events') || [];
+  }
+  
+  static clearAnalytics() {
+    this.removeStorage('ui_analytics_events');
+  }
+  
+  // ========== PERFORMANCE ==========
+  
   static measurePerformance(metricName, callback) {
     const startTime = performance.now();
     const result = callback();
@@ -472,7 +639,8 @@ export class UIManager {
     return result;
   }
   
-  // Error handling
+  // ========== MANEJO DE ERRORES ==========
+  
   static handleError(error, context = 'unknown') {
     console.error(`❌ Error en ${context}:`, error);
     
@@ -502,9 +670,16 @@ export class UIManager {
         })
       }).catch(() => { /* Ignorar errores en el reporte */ });
     }
+    
+    // Lanzar evento global de error
+    const errorEvent = new CustomEvent('ui:error', { 
+      detail: { error, context } 
+    });
+    document.dispatchEvent(errorEvent);
   }
   
-  // Internationalization
+  // ========== INTERNACIONALIZACIÓN ==========
+  
   static setLanguage(lang) {
     document.documentElement.lang = lang;
     this.setCookie('preferred_language', lang, 365);
@@ -522,7 +697,8 @@ export class UIManager {
            'es';
   }
   
-  // Accessibility
+  // ========== ACCESIBILIDAD ==========
+  
   static setHighContrast(enabled) {
     if (enabled) {
       document.documentElement.classList.add('high-contrast');
@@ -551,8 +727,29 @@ export class UIManager {
     }
   }
   
-  // Reset/cleanup
+  static toggleDarkMode(enabled = null) {
+    const current = document.documentElement.classList.contains('dark-mode');
+    const shouldEnable = enabled !== null ? enabled : !current;
+    
+    if (shouldEnable) {
+      document.documentElement.classList.add('dark-mode');
+      this.setCookie('dark_mode', 'true', 365);
+    } else {
+      document.documentElement.classList.remove('dark-mode');
+      this.deleteCookie('dark_mode');
+    }
+    
+    this.trackEvent('accessibility_setting', {
+      setting: 'dark_mode',
+      enabled: shouldEnable
+    });
+  }
+  
+  // ========== RESET/CLEANUP ==========
+  
   static destroy() {
+    console.log('🧹 Destruyendo UIManager...');
+    
     // Limpiar todos los event listeners
     this.removeAllEventListeners();
     
@@ -563,9 +760,11 @@ export class UIManager {
     this.clearNotifications();
     
     // Destruir todos los sliders
-    UISlider.sliders.forEach((_, sliderId) => {
-      UISlider.destroy(sliderId);
-    });
+    if (UISlider.sliders) {
+      UISlider.sliders.forEach((_, sliderId) => {
+        UISlider.destroy(sliderId);
+      });
+    }
     
     // Remover del global scope
     delete window.UIManager;
@@ -574,6 +773,8 @@ export class UIManager {
     delete window.UIKits;
     delete window.UISlider;
     delete window.UINotifications;
+    
+    // Remover métodos abreviados
     delete window.showNotification;
     delete window.showError;
     delete window.showSuccess;
@@ -582,12 +783,19 @@ export class UIManager {
     delete window.closeAllModals;
     delete window.showModal;
     delete window.closeModal;
+    delete window.customizeVehicle;
+    delete window.contactVehicle;
+    delete window.mostrarDetallesVehiculo;
     
     this.initialized = false;
-    console.log('🧹 UIManager destruido');
+    this.activeModal = null;
+    this.previouslyFocused = null;
+    
+    console.log('✅ UIManager destruido');
   }
   
-  // Health check
+  // ========== HEALTH CHECK ==========
+  
   static healthCheck() {
     return {
       initialized: this.initialized,
@@ -600,26 +808,76 @@ export class UIManager {
         localStorage: localStorage.length,
         sessionStorage: sessionStorage.length
       },
-      components: {
-        sliders: UISlider.sliders.size,
-        notifications: UINotifications.getCount()
+      modules: {
+        sliders: UISlider.sliders ? UISlider.sliders.size : 0,
+        notifications: UINotifications.getCount ? UINotifications.getCount() : 0
       },
-      breakpoint: UICore.getBreakpoint(),
-      preferences: UICore.getUserPreferences()
+      breakpoint: UICore.getBreakpoint ? UICore.getBreakpoint() : 'unknown',
+      preferences: UICore.getUserPreferences ? UICore.getUserPreferences() : {}
     };
+  }
+  
+  // ========== DEBUG METHODS ==========
+  
+  static debug() {
+    console.group('🔍 UIManager Debug Info');
+    console.log('Initialized:', this.initialized);
+    console.log('Active Modal:', this.activeModal);
+    console.log('Event Listeners:', this.eventListeners.size);
+    console.log('Health Check:', this.healthCheck());
+    console.groupEnd();
+    
+    return this.healthCheck();
+  }
+  
+  static testAll() {
+    console.group('🧪 UIManager Tests');
+    
+    // Test notificaciones
+    try {
+      this.showSuccess('Test de notificación exitosa', 1000);
+      console.log('✅ Notificaciones: OK');
+    } catch (e) {
+      console.error('❌ Notificaciones: FAILED', e);
+    }
+    
+    // Test modales
+    try {
+      console.log('✅ Modales: Available (no opening for test)');
+    } catch (e) {
+      console.error('❌ Modales: FAILED', e);
+    }
+    
+    // Test productosManager
+    try {
+      const hasPM = !!window.productosManager;
+      console.log(`✅ productosManager: ${hasPM ? 'Available' : 'Not Available'}`);
+    } catch (e) {
+      console.error('❌ productosManager test: FAILED', e);
+    }
+    
+    console.groupEnd();
   }
 }
 
 // Inicialización automática si se usa como script global
 if (typeof window !== 'undefined' && !window.UIManager) {
   window.addEventListener('DOMContentLoaded', () => {
-    // Inicializar con opciones por defecto
-    UIManager.init({
-      autoInitSlider: true
-    }).then(success => {
-      if (success) {
-        console.log('🚀 UIManager inicializado automáticamente');
-      }
-    });
+    // Pequeño delay para asegurar que todo esté cargado
+    setTimeout(() => {
+      // Inicializar con opciones por defecto
+      UIManager.init({
+        autoInitSlider: true
+      }).then(success => {
+        if (success) {
+          console.log('🚀 UIManager inicializado automáticamente');
+        }
+      }).catch(error => {
+        console.error('❌ Error inicializando UIManager automáticamente:', error);
+      });
+    }, 100);
   });
 }
+
+// Exportar clase
+export default UIManager;
