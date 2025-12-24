@@ -1,4 +1,4 @@
-// config.js - EXPORTANDO CORRECTAMENTE
+// config.js - CONFIGURACIÓN COMPLETA
 const CONFIG = {
   supabase: {
     url: "https://cflpmluvhfldewiitymh.supabase.co",
