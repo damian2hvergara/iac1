@@ -387,6 +387,18 @@
     
     <!-- Main App Initialization -->
     <script type="module">
+        import { initializeApp } from './js/main.js';
+        
+        // Iniciar cuando el DOM esté listo
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeApp);
+        } else {
+            initializeApp();
+        }
+    </script>
+    
+    <!-- Main App Initialization -->
+    <script type="module">
         async function initializeApp() {
             console.log('🚀 Inicializando aplicación...');
             
