@@ -1324,3 +1324,55 @@
     border-color: rgba(0, 122, 255, 0.2);
     color: var(--info);
 }
+// En ui-manager.js, actualizar el método:
+
+static customizeVehicle(vehicleId) {
+  console.log(`🔧 Personalizando vehículo: ${vehicleId}`);
+  
+  try {
+    if (!window.productosManager) {
+      console.error('❌ productosManager no disponible');
+      this.showError('Sistema no disponible');
+      return;
+    }
+    
+    const vehiculo = window.productosManager.getVehiculoById(vehicleId);
+    if (!vehiculo) {
+      console.error(`❌ Vehículo ${vehicleId} no encontrado`);
+      this.showError('Vehículo no encontrado');
+      return;
+    }
+    
+    // Verificar que UIKits esté disponible
+    if (!window.UIKits || typeof window.UIKits.showKitsModal !== 'function') {
+      console.error('❌ UIKits no disponible');
+      
+      // Fallback: abrir WhatsApp directamente
+      const url = window.productosManager.getWhatsAppUrl?.(vehiculo) || 
+                 `${window.CONFIG?.urls?.social?.whatsapp || 'https://wa.me/56938654827'}?text=${encodeURIComponent(`Hola, estoy interesado en: ${vehiculo.nombre}`)}`;
+      
+      window.open(url, '_blank', 'noopener,noreferrer');
+      return;
+    }
+    
+    // Abrir personalizador
+    window.UIKits.showKitsModal(vehicleId);
+    
+    // Seguimiento de evento
+    this.trackEvent('start_customization', {
+      vehicle_id: vehicleId,
+      vehicle_name: vehiculo.nombre
+    });
+    
+  } catch (error) {
+    console.error('❌ Error al personalizar vehículo:', error);
+    this.showError('Error al abrir el personalizador');
+    
+    // Fallback extremo
+    const vehiculo = window.productosManager?.getVehiculoById(vehicleId);
+    if (vehiculo) {
+      const url = `${window.CONFIG?.urls?.social?.whatsapp || 'https://wa.me/56938654827'}?text=${encodeURIComponent(`Hola, estoy interesado en: ${vehiculo.nombre}`)}`;
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }
+  }
+}
