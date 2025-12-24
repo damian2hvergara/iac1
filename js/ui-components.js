@@ -1,5 +1,7 @@
-// UI SLIDER - Manejo de sliders de imágenes mejorado
-export class UISlider {
+// ui-components.js - VERSIÓN COMPLETA CORREGIDA
+
+// ===================== UI SLIDER =====================
+class UISlider {
   static sliders = new Map();
   static touchStartX = 0;
   static touchEndX = 0;
@@ -404,8 +406,8 @@ export class UISlider {
   }
 }
 
-// UI MODALS - Manejo de modales de vehículos mejorado
-export class UIModals {
+// ===================== UI MODALS =====================
+class UIModals {
   static currentVehicle = null;
   static currentSlide = 0;
   static totalSlides = 0;
@@ -416,7 +418,9 @@ export class UIModals {
     const vehiculo = window.productosManager?.getVehiculoById(vehicleId);
     if (!vehiculo) {
       console.error(`❌ Vehículo ${vehicleId} no encontrado`);
-      UINotifications.error('Vehículo no encontrado');
+      if (window.UINotifications) {
+        UINotifications.error('Vehículo no encontrado');
+      }
       return;
     }
     
@@ -439,7 +443,7 @@ export class UIModals {
       { icon: 'fa-calendar', label: 'Año', value: vehiculo.ano },
       { icon: 'fa-palette', label: 'Color', value: vehiculo.color },
       { icon: 'fa-cogs', label: 'Motor', value: vehiculo.motor },
-      { icon: 'fa-road', label: 'Kilometraje', value: vehiculo.kilometraje ? `${vehiculo.kilometraje.toLocaleString()} km` : null },
+      { icon: 'fa-road', label: 'Kilometraje', value: vehiculo.kilometraje ? `${parseInt(vehiculo.kilometraje).toLocaleString()} km` : null },
       { icon: 'fa-car', label: 'Modelo', value: vehiculo.modelo },
       { icon: 'fa-industry', label: 'Marca', value: vehiculo.marca },
       { icon: 'fa-cog', label: 'Transmisión', value: vehiculo.transmision },
@@ -480,9 +484,9 @@ export class UIModals {
         </div>
         
         <div class="details-content">
-          <div class="vehicle-status-large" style="background: ${window.productosManager.getEstadoColor(vehiculo.estado)}10; color: ${window.productosManager.getEstadoColor(vehiculo.estado)}; border-color: ${window.productosManager.getEstadoColor(vehiculo.estado)}30;">
+          <div class="vehicle-status-large" style="background: ${vehiculo.estadoColor}10; color: ${vehiculo.estadoColor}; border-color: ${vehiculo.estadoColor}30;">
             <i class="fas fa-circle" style="font-size: 0.5rem;"></i>
-            ${window.productosManager.getEstadoTexto(vehiculo.estado)}
+            ${vehiculo.estadoTexto}
           </div>
           
           <h1 class="detail-title">${vehiculo.nombre || 'Vehículo'}</h1>
@@ -657,8 +661,8 @@ export class UIModals {
   }
 }
 
-// UI KITS - Manejo de kits de personalización mejorado
-export class UIKits {
+// ===================== UI KITS =====================
+class UIKits {
   static selectedKit = null;
   static vehicleForCustomization = null;
   static kitOptions = [];
@@ -668,7 +672,9 @@ export class UIKits {
     const vehiculo = window.productosManager?.getVehiculoById(vehicleId);
     if (!vehiculo) {
       console.error(`❌ Vehículo ${vehicleId} no encontrado`);
-      UINotifications.error('Vehículo no encontrado');
+      if (window.UINotifications) {
+        UINotifications.error('Vehículo no encontrado');
+      }
       return;
     }
     
@@ -815,7 +821,9 @@ export class UIKits {
     const kit = this.kitOptions.find(k => k.id === kitId);
     
     if (!vehiculo || !kit) {
-      UINotifications.error('No se pudo generar la cotización');
+      if (window.UINotifications) {
+        UINotifications.error('No se pudo generar la cotización');
+      }
       return;
     }
     
@@ -841,7 +849,9 @@ export class UIKits {
         }
       }
     } else {
-      UINotifications.error('No se pudo generar el enlace de WhatsApp');
+      if (window.UINotifications) {
+        UINotifications.error('No se pudo generar el enlace de WhatsApp');
+      }
     }
   }
   
@@ -878,3 +888,6 @@ export class UIKits {
     return (vehiclePrice || 0) + (kitPrice || 0);
   }
 }
+
+// Exportar todas las clases
+export { UISlider, UIModals, UIKits };
