@@ -1,12 +1,10 @@
-[file name]: supabase-service.js
-[file content begin]
 // ===================== SUPABASE SERVICE MEJORADO =====================
 class SupabaseService {
   constructor(config) {
     this.config = config || window.CONFIG;
     this.supabaseUrl = this.config.supabase.url;
     this.supabaseKey = this.config.supabase.anonKey;
-    this.cacheDuration = this.config.app.performance.cacheDuration * 1000;
+    this.cacheDuration = 5 * 60 * 1000; // 5 minutos en milisegundos
     this.cache = new Map();
   }
 
@@ -258,7 +256,7 @@ class SupabaseService {
       nombre: vehiculo.nombre || vehiculo.titulo || 'Vehículo',
       descripcion: vehiculo.descripcion || vehiculo.detalles || 'Vehículo americano importado',
       precio: vehiculo.precio || vehiculo.valor || 0,
-      estado: estado,  // 'stock', 'transit', 'reserved'
+      estado: estado,
       estadoTexto: estadoConfig.texto,
       estadoColor: estadoConfig.color,
       estadoIcono: estadoConfig.icono,
@@ -368,10 +366,4 @@ class SupabaseService {
 }
 
 // Exportar para módulos ES6
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = SupabaseService;
-} else {
-  // Hacer disponible globalmente
-  window.SupabaseService = SupabaseService;
-}
-[file content end]
+export { SupabaseService };
