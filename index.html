@@ -386,16 +386,35 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <!-- Main App Initialization -->
-    <script type="module">
-        import { initializeApp } from './js/main.js';
-        
-        // Iniciar cuando el DOM esté listo
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initializeApp);
-        } else {
-            initializeApp();
-        }
-    </script>
+<!-- En tu index.html, actualiza la sección de scripts: -->
+<script type="module">
+  // Prevenir múltiples inicializaciones
+  if (!window.appInitialized && !window.appLoading) {
+    window.appLoading = true;
+    
+    import { initializeApp } from './js/main.js';
+    
+    // Función para manejar errores de inicialización
+    function manejarErrorInicializacion(error) {
+      console.error('Error fatal al inicializar:', error);
+      const loadingOverlay = document.getElementById('loadingOverlay');
+      if (loadingOverlay) {
+        loadingOverlay.style.display = 'none';
+      }
+    }
+    
+    // Inicializar cuando el DOM esté listo
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => {
+        initializeApp().catch(manejarErrorInicializacion);
+      });
+    } else {
+      initializeApp().catch(manejarErrorInicializacion);
+    }
+  } else {
+    console.log('⚠️ La aplicación ya se está inicializando o ya está inicializada');
+  }
+</script>
     
     <!-- Main App Initialization -->
     <script type="module">
